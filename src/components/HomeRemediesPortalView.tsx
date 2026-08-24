@@ -89,20 +89,23 @@ export const HomeRemediesPortalView: React.FC<HomeRemediesPortalViewProps> = ({
               <Leaf className="w-3.5 h-3.5" />
               <span>
                 {currentLanguage === 'hi'
-                  ? 'वैज्ञानिक व पारंपरिक घरेलू उपचार'
-                  : 'Evidence-Based Botanical Therapeutics'}
+                  ? 'जीवनशैली व प्राकृतिक पोषण मार्गदर्शन'
+                  : 'Lifestyle & Wellness Guidance'}
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight">
               {currentLanguage === 'hi'
-                ? 'पीसीओएस हर्बल व घरेलू उपचार पोर्टल'
-                : 'PCOS Natural Home Remedies Portal'}
+                ? 'पीसीओएस जीवनशैली व पोषण सहायता पोर्टल'
+                : 'Lifestyle & Wellness Guidance Portal'}
             </h1>
             <p className="text-sm text-emerald-200/80 leading-relaxed">
               {currentLanguage === 'hi'
-                ? 'स्पीयरमिंट (पुदीना) चाय, मेथी दाना, दालचीनी, सीड साइकलिंग और अदरक-तुलसी काढ़ा — वैज्ञानिक प्रमाण, सटीक खुराक और सुरक्षा सावधानियों के साथ।'
-                : 'Clinically grounded Ayurvedic and traditional formulations: Spearmint for free testosterone reduction, Fenugreek for insulin modulation, Seed Cycling, and anti-cramp decoctions.'}
+                ? 'संतुलित पोषण, स्पीयरमिंट चाय, मेथी दाना, दालचीनी, तनाव प्रबंधन व नींद स्वच्छता — वैज्ञानिक प्रमाण और सुरक्षा सावधानियों के साथ।'
+                : 'Evidence-informed lifestyle practices, botanical nutrients, sleep hygiene, and nutritional guidance to support metabolic and cycle balance.'}
             </p>
+            <div className="p-2.5 rounded-xl bg-black/40 border border-amber-500/30 text-xs text-amber-200">
+              ⚠️ <strong>Wellness Notice:</strong> General wellness education only — not a medical cure for PCOS. Consult a doctor for clinical treatment.
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -133,8 +136,8 @@ export const HomeRemediesPortalView: React.FC<HomeRemediesPortalViewProps> = ({
               <ShieldCheck className="w-4 h-4" />
             </div>
             <div>
-              <p className="text-xs font-bold text-white">Pharmacological Safety</p>
-              <p className="text-[11px] text-emerald-200/70">Precise contraindications provided for pregnancy, gastritis, and Metformin interactions.</p>
+              <p className="text-xs font-bold text-white">General Wellness Education</p>
+              <p className="text-[11px] text-emerald-200/70">Educational guidelines to support healthy daily habits alongside professional medical guidance.</p>
             </div>
           </div>
 

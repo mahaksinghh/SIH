@@ -170,15 +170,15 @@ export const SmartKitFutureScopeView: React.FC<SmartKitFutureScopeViewProps> = (
           </div>
 
           <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-            StreeSure Smart Screening Kit
+            StreeSure Sense — Research Prototype
           </h1>
 
           <p className="text-base sm:text-xl font-medium text-pink-200">
-            "The next step toward accessible, low-cost women's health screening."
+            "An experimental low-cost optical sensing module designed to explore colorimetric and metabolic measurements."
           </p>
 
           <p className="text-sm text-rose-100/80 leading-relaxed">
-            From digital questionnaire screening to accessible community-level physical assessment. We are architecting a compact, rural-friendly, multi-parameter companion device that integrates non-invasive physiological measurements directly with StreeSure's AI risk engine and ASHA worker workflows.
+            From digital questionnaire screening to accessible community-level physical assessment. We are architecting a compact, rural-friendly, multi-parameter companion device combining ESP32-S3 microcontroller, TCS34725 optical sensor chamber, controlled LED illumination, and BLE connectivity directly with StreeSure's screening engine and ASHA worker workflows.
           </p>
 
           {/* Quick Pillar Tags */}

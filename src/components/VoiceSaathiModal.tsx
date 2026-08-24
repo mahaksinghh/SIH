@@ -26,6 +26,10 @@ import {
   Dumbbell,
   Leaf,
   TrendingUp,
+  ExternalLink,
+  ShieldCheck,
+  Search,
+  AlertCircle,
 } from 'lucide-react';
 import { LanguageCode, User } from '../types';
 import { SUPPORTED_LANGUAGES, getTranslation } from '../services/translations';
@@ -50,9 +54,24 @@ interface Message {
   actionIntent?: string;
   actionLabel?: string;
   timestamp: string;
+  googleGrounded?: boolean;
+  sources?: Array<{ title: string; uri: string }>;
 }
 
 type TopicCategory = 'symptoms' | 'myths' | 'nutrition' | 'exercise' | 'remedies' | 'tracker' | 'tests' | 'doctor';
+
+const COMMON_REAL_SYMPTOMS = [
+  { id: 'delayed_periods', label: '🩸 Delayed Cycles (35+ Days)', hi: 'माहवारी 35+ दिन लेट', prompt: 'Why are my periods delayed for more than 35-45 days in PCOS?' },
+  { id: 'facial_hair', label: '✨ Facial & Chin Hair', hi: 'चेहरे और ठोड़ी पर अनचाहे बाल', prompt: 'What causes facial and chin hair in PCOS and how to reduce it?' },
+  { id: 'cystic_acne', label: '🔴 Jawline Cystic Acne', hi: 'जबड़े और चेहरे पर गंभीर मुंहासे', prompt: 'Why do I get hormonal acne around the jawline and how to manage it?' },
+  { id: 'weight_gain', label: '⚖️ Stubborn Belly Weight', hi: 'पेट के आसपास बढ़ता वजन', prompt: 'Why is it difficult to lose weight with insulin resistance in PCOS?' },
+  { id: 'hair_thinning', label: '💆 Scalp Hair Loss', hi: 'सिर के बालों का पतला होना/झड़ना', prompt: 'How does high androgen cause hair loss on the crown in PCOS?' },
+  { id: 'dark_neck', label: '🖤 Dark Patches on Neck', hi: 'गर्दन पर काले मखमली धब्बे', prompt: 'What is Acanthosis Nigricans and why does high insulin cause dark neck skin?' },
+  { id: 'fatigue_sugar', label: '⚡ Fatigue & Sugar Cravings', hi: 'अत्यधिक थकान और मीठे की लालसा', prompt: 'Why do I feel tired after meals and crave sweets with PCOS?' },
+  { id: 'pregnancy_ovulation', label: '👶 Fertility & Ovulation', hi: 'गर्भधारण और ओव्यूलेशन में मदद', prompt: 'Can I get pregnant naturally with PCOS and how to boost ovulation?' },
+  { id: 'spearmint_tea', label: '🍵 Spearmint & Inositol', hi: 'पुदीना चाय और मायो-इनोसिटोल', prompt: 'What is the clinical evidence for Spearmint tea and 40:1 Myo-Inositol for PCOS?' },
+  { id: 'pelvic_pain', label: '🌸 Severe Period Cramps', hi: 'माहवारी में तेज पेट दर्द', prompt: 'What causes severe period cramps and pelvic heaviness in PCOS?' },
+];
 
 export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
   isOpen,
@@ -100,8 +119,33 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
   const [isListening, setIsListening] = useState(false);
   const [currentlySpeakingId, setCurrentlySpeakingId] = useState<string | null>(null);
   const [isLoadingAi, setIsLoadingAi] = useState(false);
+  const [showSymptomDrawer, setShowSymptomDrawer] = useState(false);
+  const [selectedSymptomsList, setSelectedSymptomsList] = useState<string[]>([]);
+  const [isAnalyzingSymptoms, setIsAnalyzingSymptoms] = useState(false);
   const recognitionRef = useRef<any>(null);
   const chatBottomRef = useRef<HTMLDivElement>(null);
+
+  const toggleSymptomSelection = (symptomLabel: string) => {
+    setSelectedSymptomsList((prev) =>
+      prev.includes(symptomLabel)
+        ? prev.filter((s) => s !== symptomLabel)
+        : [...prev, symptomLabel]
+    );
+  };
+
+  const handleRunMultiSymptomAnalysis = async () => {
+    if (selectedSymptomsList.length === 0) return;
+    setIsAnalyzingSymptoms(true);
+    setShowSymptomDrawer(false);
+
+    const symptomQuery =
+      currentLanguage === 'hi'
+        ? `कृपया मेरे इन लक्षणों का विश्लेषण करें: ${selectedSymptomsList.join(', ')}। इनका क्या कारण है और मुझे क्या करना चाहिए?`
+        : `Please analyze my symptoms: ${selectedSymptomsList.join(', ')}. What are the hormonal root causes, key lab tests, and actionable steps?`;
+
+    await handleSendMessage(symptomQuery);
+    setIsAnalyzingSymptoms(false);
+  };
 
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -331,6 +375,8 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
         followUpQuestions: data.followUpQuestions || [],
         actionIntent: data.actionIntent || 'none',
         actionLabel: data.actionLabel || '',
+        googleGrounded: data.googleGrounded ?? true,
+        sources: data.sources || [],
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
 
@@ -362,6 +408,8 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
           currentLanguage === 'hi'
             ? ['मायो-इनोसिटोल कैसे काम करता है?', 'डॉक्टर से परामर्श कैसे लें?']
             : ['How does Myo-Inositol work?', 'How to consult a doctor on StreeSure?'],
+        googleGrounded: false,
+        sources: [],
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, fallbackMsg]);
@@ -512,6 +560,10 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                 <span className="bg-emerald-400 text-emerald-950 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
                   PCOS Specialist
                 </span>
+                <span className="hidden sm:inline-flex items-center gap-1 bg-white/20 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                  <Globe className="w-3 h-3 text-amber-300" />
+                  <span>Google Grounded</span>
+                </span>
               </div>
               <p className="text-[11px] text-rose-100">
                 Evidence-Based PCOS Knowledge, 3D Anatomy & Care Navigation
@@ -520,6 +572,17 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Multi-Symptom Diagnostic Button */}
+            <button
+              type="button"
+              onClick={() => setShowSymptomDrawer(true)}
+              className="bg-amber-400 hover:bg-amber-300 text-slate-900 text-xs font-bold px-2.5 py-1.5 rounded-xl shadow-xs flex items-center gap-1.5 transition"
+              title="Open Multi-Symptom Diagnostic Tool"
+            >
+              <Search className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Symptom Checker</span>
+            </button>
+
             {/* Clear history */}
             <button
               type="button"
@@ -555,6 +618,24 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
               <X className="w-5 h-5" />
             </button>
           </div>
+        </div>
+
+        {/* Real Symptoms Quick Bar */}
+        <div className="bg-rose-50/90 border-b border-rose-100 px-3 py-2 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+          <span className="text-[10px] font-extrabold text-rose-900 uppercase shrink-0 flex items-center gap-1">
+            <Sparkles className="w-3 h-3 text-rose-600" />
+            {currentLanguage === 'hi' ? 'वास्तविक लक्षण:' : 'Real Symptoms:'}
+          </span>
+          {COMMON_REAL_SYMPTOMS.map((sym) => (
+            <button
+              key={sym.id}
+              type="button"
+              onClick={() => handleSendMessage(sym.prompt)}
+              className="px-2.5 py-1 rounded-lg bg-white hover:bg-rose-100 text-rose-950 text-[11px] font-semibold whitespace-nowrap border border-rose-200 shadow-2xs transition shrink-0"
+            >
+              {currentLanguage === 'hi' ? sym.hi : sym.label}
+            </button>
+          ))}
         </div>
 
         {/* Category Navigation Bar for Deep PCOS Topics */}
@@ -754,6 +835,30 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                   </div>
                 )}
 
+                {/* Google Grounding Verified Citations */}
+                {msg.sender === 'saathi' && msg.sources && msg.sources.length > 0 && (
+                  <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl p-2.5 space-y-1.5 text-[11px] text-emerald-950">
+                    <div className="flex items-center gap-1.5 font-bold text-emerald-800 text-[10px] uppercase tracking-wider">
+                      <Globe className="w-3 h-3 text-emerald-600" />
+                      <span>{currentLanguage === 'hi' ? 'गूगल मेडिकल साक्ष्य व संदर्भ:' : 'Grounded Google Medical Evidence:'}</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {msg.sources.map((src, sIdx) => (
+                        <a
+                          key={sIdx}
+                          href={src.uri}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 bg-white hover:bg-emerald-100/60 text-emerald-900 border border-emerald-200 px-2 py-0.5 rounded-lg text-[10px] font-medium transition"
+                        >
+                          <span>{src.title || 'Medical Reference'}</span>
+                          <ExternalLink className="w-2.5 h-2.5 text-emerald-600" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Dynamic Smart Follow-up Questions */}
                 {msg.sender === 'saathi' &&
                   msg.followUpQuestions &&
@@ -883,6 +988,104 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
             <Send className="w-4 h-4" />
           </button>
         </div>
+
+        {/* Multi-Symptom Analyzer Overlay Drawer */}
+        {showSymptomDrawer && (
+          <div className="absolute inset-0 z-20 bg-slate-900/80 backdrop-blur-sm flex flex-col justify-end sm:justify-center p-3 sm:p-6 animate-in fade-in">
+            <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-rose-100 max-h-[85%] flex flex-col">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
+                    <Search className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-sm text-slate-900">
+                      {currentLanguage === 'hi' ? 'मल्टी-लक्षण डायग्नोस्टिक चेकर' : 'Multi-Symptom Diagnostic Tool'}
+                    </h4>
+                    <p className="text-[11px] text-slate-500">
+                      {currentLanguage === 'hi'
+                        ? 'अपने सभी लक्षण चुनें और गूगल ग्राउंडेड मेडिकल विश्लेषण प्राप्त करें।'
+                        : 'Select multiple real symptoms to get root-cause correlation & clinical tests.'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSymptomDrawer(false)}
+                  className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-500"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Symptom Checkbox Matrix */}
+              <div className="py-4 overflow-y-auto max-h-64 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {COMMON_REAL_SYMPTOMS.map((sym) => {
+                  const isChecked = selectedSymptomsList.includes(sym.label);
+                  return (
+                    <button
+                      key={sym.id}
+                      type="button"
+                      onClick={() => toggleSymptomSelection(sym.label)}
+                      className={`p-3 rounded-2xl text-left border transition flex items-center justify-between gap-2 text-xs font-semibold ${
+                        isChecked
+                          ? 'bg-rose-50 border-rose-500 text-rose-950 shadow-xs'
+                          : 'bg-slate-50 hover:bg-slate-100/80 border-slate-200 text-slate-700'
+                      }`}
+                    >
+                      <div className="flex flex-col">
+                        <span>{currentLanguage === 'hi' ? sym.hi : sym.label}</span>
+                        <span className="text-[10px] text-slate-400 font-normal">
+                          {currentLanguage === 'hi' ? 'वास्तविक लक्षण' : 'Real Symptom Factor'}
+                        </span>
+                      </div>
+                      <div
+                        className={`w-5 h-5 rounded-lg border flex items-center justify-center ${
+                          isChecked ? 'bg-rose-600 border-rose-600 text-white' : 'border-slate-300 bg-white'
+                        }`}
+                      >
+                        {isChecked && <CheckCircle2 className="w-3.5 h-3.5" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+                <span className="text-xs text-slate-500">
+                  {selectedSymptomsList.length}{' '}
+                  {currentLanguage === 'hi' ? 'लक्षण चुने गए' : 'symptoms selected'}
+                </span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedSymptomsList([])}
+                    className="px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100"
+                  >
+                    {currentLanguage === 'hi' ? 'रीसेट' : 'Clear'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleRunMultiSymptomAnalysis}
+                    disabled={selectedSymptomsList.length === 0 || isAnalyzingSymptoms}
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 disabled:opacity-50 text-white text-xs font-bold shadow-md flex items-center gap-1.5 transition"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>
+                      {isAnalyzingSymptoms
+                        ? currentLanguage === 'hi'
+                          ? 'विश्लेषण हो रहा है...'
+                          : 'Analyzing...'
+                        : currentLanguage === 'hi'
+                        ? 'एआई विश्लेषण शुरू करें'
+                        : 'Run Medical Analysis'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

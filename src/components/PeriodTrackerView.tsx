@@ -96,10 +96,10 @@ export const PeriodTrackerView: React.FC<PeriodTrackerViewProps> = ({
             <span>Cycle Health & Ovulation Tracker</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black">
-            Menstrual Cycle & Symptom Diary
+            Period & Symptom Tracker
           </h1>
           <p className="text-xs sm:text-sm text-rose-100 mt-1 max-w-xl">
-            Keep track of cycle dates, flow changes, and symptoms to empower your discussions with gynecologists.
+            Log your cycles, pain, flow, and symptoms to build an accurate health timeline for your gynecologist consultations.
           </p>
         </div>
 

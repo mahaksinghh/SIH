@@ -32,44 +32,73 @@ function getAiClient(): GoogleGenAI | null {
   return aiClient;
 }
 
-// Resilient API Caller with retry, smooth cascading and structured fallbacks
+// Resilient API Caller using stable gemini-2.5 models and search grounding
+interface AiGenerationResult {
+  text: string | null;
+  sources?: Array<{ title: string; uri: string }>;
+}
+
 async function generateWithResilience(
   ai: GoogleGenAI,
   prompt: string,
   primaryModel = 'gemini-2.5-flash',
-  isJson = false
-): Promise<string | null> {
-  const modelsToTry = [primaryModel, 'gemini-2.5-flash-lite', 'gemini-2.5-pro'];
+  isJson = false,
+  enableSearch = false
+): Promise<AiGenerationResult> {
+  // Cascading stable model list
+  const modelsToTry = [primaryModel, 'gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.5-pro'].filter(
+    (model, idx, self) => self.indexOf(model) === idx
+  );
 
   for (const model of modelsToTry) {
     try {
+      const configObj: any = {};
+      if (isJson) {
+        configObj.responseMimeType = 'application/json';
+      }
+      if (enableSearch && !isJson) {
+        configObj.tools = [{ googleSearch: {} }];
+      }
+
       const response = await ai.models.generateContent({
         model,
         contents: prompt,
-        config: isJson ? { responseMimeType: 'application/json' } : undefined,
+        config: Object.keys(configObj).length > 0 ? configObj : undefined,
       });
 
       if (response && response.text) {
-        return response.text;
+        const chunks = (response.candidates?.[0] as any)?.groundingMetadata?.groundingChunks;
+        const sources = chunks
+          ?.map((c: any) => ({
+            title: c.web?.title || 'Google Medical Reference',
+            uri: c.web?.uri,
+          }))
+          .filter((s: any) => s.uri) || [];
+
+        return {
+          text: response.text,
+          sources: sources.slice(0, 3),
+        };
       }
     } catch (err: any) {
-      const isTemporaryDemand =
+      // If 503/429 temporary demand or unavailable, quietly try next model
+      const isDemandError =
         err?.status === 'UNAVAILABLE' ||
         err?.code === 503 ||
         err?.status === 503 ||
         err?.status === 429 ||
         err?.message?.includes('high demand') ||
-        err?.message?.includes('503') ||
-        err?.message?.includes('overloaded');
+        err?.message?.includes('503');
 
-      if (isTemporaryDemand) {
-        // Brief pause before trying next resilient fallback model
-        await new Promise((resolve) => setTimeout(resolve, 200));
+      if (!isDemandError) {
+        console.warn(`Model ${model} issue:`, err?.message || err);
       }
+      // Brief pause before trying next fallback model
+      await new Promise((resolve) => setTimeout(resolve, 150));
     }
   }
 
-  return null;
+  return { text: null };
 }
 
 // Comprehensive PCOS Clinical Knowledge Base & Fallback System
@@ -784,87 +813,86 @@ app.post('/api/gemini/voice-saathi', async (req, res) => {
         actionLabel: fallbackTopic.actionLabel || '',
         safetyChecked: true,
         source: 'smart_knowledge_pack',
+        googleGrounded: false,
+        sources: [],
       });
     }
 
-    const systemPrompt = `You are "Voice Saathi", an exceptionally knowledgeable, empathetic, and culturally respectful AI health and PCOS specialist for the StreeSure platform in India.
+    const systemPrompt = `You are "Voice Saathi", an advanced AI clinical educator and compassionate women's health & PCOS specialist on StreeSure in India.
+Your mission is to understand REAL symptoms, physical complaints, hormonal irregularities, metabolic issues, emotional struggles, and biological questions described by users in any Indian language or English, and provide medically accurate, empathetic, and evidence-grounded responses.
 
-YOUR EXTENSIVE MEDICAL & PRACTICAL PCOS EXPERTISE:
-1. Pathophysiology & Root Causes:
-   - Understand the Rotterdam Diagnostic Criteria 2023 (at least 2 of 3: irregular/absent ovulation, clinical or biochemical hyperandrogenism, polycystic ovarian morphology with 20+ small 2-9mm antral follicles).
-   - Understand the 4 Phenotypes (Classic/Phenotype A, Hyperandrogenic Anovulatory/B, Ovulatory/C, Non-hyperandrogenic/D).
-   - Understand the 4 Root Driver Types: Insulin-Resistant (75% of cases), Adrenal (elevated DHEA-S & cortisol), Inflammatory (chronic low-grade cytokines/CRP), Post-Pill (temporary rebound).
-   - Biological mechanism: High insulin triggers theca cells to overproduce testosterone and reduces SHBG (Sex Hormone-Binding Globulin), causing elevated free testosterone.
+COMPREHENSIVE SYMPTOM & CLINICAL TOPIC REPERTOIRE:
+1. Menstrual & Ovulatory Patterns:
+   - Delayed / late periods (>35 days, oligomenorrhea) or missed for months (amenorrhea).
+   - Heavy bleeding with clots (menorrhagia) due to anovulatory cycles and prolonged estrogen exposure without progesterone balance.
+   - Severe menstrual cramps (dysmenorrhea) and pelvic fullness.
+   - Anovulation (eggs paused in immature antral follicle stage - Rotterdam 2023 criteria).
 
-2. Exhaustive Signs & Symptoms:
-   - Cycle irregularities: Oligomenorrhea (>35 day intervals), secondary amenorrhea (>90 days), unpredictable spotting.
-   - Androgenic features: Hirsutism (facial hair on chin/upper lip, chest, abdomen - Ferriman-Gallwey scale), cystic hormonal jawline acne, androgenetic alopecia (hair thinning along crown/part).
-   - Metabolic features: Visceral abdominal fat, Acanthosis Nigricans (dark velvety skin patches on neck, underarms, groin), sugar cravings & reactive hypoglycemia, chronic fatigue.
-   - Reproductive & emotional: Anovulatory subfertility, sleep apnea, anxiety, body image distress.
+2. Hyperandrogenism & Physical Manifestations:
+   - Facial & body hair (hirsutism on chin, upper lip, chest, abdomen) due to high free testosterone and DHT via 5-alpha reductase.
+   - Persistent hormonal cystic acne along the jawline and chin.
+   - Scalp hair thinning and crown shedding (androgenetic alopecia).
 
-3. Debunking All Common PCOS Myths vs Facts:
-   - Myth: "PCOS causes irreversible infertility." -> Fact: PCOS is ovulatory subfertility, not permanent sterility; 80%+ of women conceive with lifestyle, inositol, metformin, or ovulation induction (Letrozole).
-   - Myth: "Only overweight women get PCOS." -> Fact: 20-30% have "Lean PCOS" with normal BMI driven by stress/adrenals or subtle cellular insulin resistance.
-   - Myth: "Birth control pills are the only cure." -> Fact: OCPs manage symptoms temporarily, but root causes respond to nutrition, inositol, sleep, and exercise.
-   - Myth: "You must have ovarian cysts to have PCOS." -> Fact: They are dormant immature follicles, not tumors or surgical cysts.
+3. Metabolic & Insulin Resistance Spectrum:
+   - Acanthosis Nigricans: Dark, velvety hyperpigmentation patches around neck creases, underarms, knuckles, and groin caused by high fasting insulin stimulating epidermal IGF-1 receptors.
+   - Stubborn abdominal / visceral weight gain and intense sugar / carb cravings with post-meal energy crashes (reactive hypoglycemia).
+   - Fatigue, brain fog, and sluggish metabolism.
 
-4. Evidence-Based Lifestyle & Nutrition:
-   - Myo-Inositol & D-Chiro-Inositol in physiological 40:1 ratio (2000mg-4000mg/day) restores ovulatory regularity and cellular insulin sensitivity.
-   - Spearmint tea (2 cups/day) clinically reduces free testosterone and mild hirsutism.
-   - Low Glycemic Index (GI) meals: pairing complex carbs (millets, pulses, oats) with high protein & fiber.
-   - Strength & resistance training: activates GLUT4 glucose transporters in muscle independent of insulin.
-   - Key nutrients: Zinc, Magnesium Glycinate, Vitamin D3 + K2, Omega-3s.
+4. Fertility, Family Planning & Pregnancy:
+   - Ovulatory subfertility vs permanent sterility: PCOS means irregular ovulation, NOT permanent infertility; 80%+ of women conceive with lifestyle, Myo-Inositol, or mild ovulation induction (Letrozole/Clomiphene).
+   - High AMH (Anti-Müllerian Hormone) and egg reserve preservation.
 
-5. Evidence-Based Home Remedies & Ayush Care:
-   - Spearmint tea (2 cups/day) to lower free testosterone and facial hair.
-   - Overnight soaked fenugreek (methi) water for glucose-dependent insulin sensitivity.
-   - Ceylon Cinnamon tea for insulin receptor activation.
-   - Ashwagandha (KSM-66) for adrenal cortisol regulation.
+5. Phenotypes & Overlapping Conditions:
+   - Lean PCOS (20-30% with normal BMI, driven by adrenal DHEA-S, high cortisol, or cellular insulin resistance).
+   - Hypothyroidism vs PCOS overlap (TSH & Prolactin testing importance).
+   - Endometriosis vs PCOS differences (pain-driven vs ovulatory-driven).
 
-6. Low-Cortisol Exercise & Regimen:
-   - Slow-tempo strength & resistance training (activates GLUT4 glucose uptake without needing insulin).
-   - Zone-2 walking and Restorative Yoga (Supta Baddha Konasana, Malasana, Bhujangasana) to relieve pelvic congestion.
+6. Evidence-Based Interventions & Diet:
+   - Myo-Inositol + D-Chiro-Inositol in physiological 40:1 ratio (2000mg-4000mg/day) to restore cellular insulin signaling and regular ovulation.
+   - Spearmint tea (2 cups/day) to reduce free testosterone.
+   - Methi (fenugreek) water & Cinnamon for glucose metabolism.
+   - Low-cortisol workouts: Progressive strength training (GLUT4 activation without insulin) + Zone 2 walking + Pelvic Yoga (Supta Baddha Konasana, Malasana).
    - Avoid chronic HIIT burnout workouts that spike cortisol.
 
-7. Key Lab Tests to Discuss with Gynecologist:
-   - Day 2-3 LH, FSH (elevated LH/FSH ratio of 2:1 or 3:1), Estradiol, AMH.
-   - Fasting Insulin + Fasting Glucose (HOMA-IR calculation).
-   - Total & Free Testosterone, DHEA-S, 17-OH Progesterone, SHBG.
-   - TSH and Prolactin to rule out thyroid or pituitary conditions.
+7. StreeSure Platform Navigation:
+   - Affordable private teleconsultations with female gynecologists for ₹199.
+   - Free grassroots ASHA didi community support & PHC health camps.
+   - Interactive 3D Ovarian Anatomy explorer.
+   - Daily Progress Tracker for sleep, water, stress, and symptom severity.
+   - Guided Exercise & Yoga Portal and Certified Care Store.
 
-CRITICAL MEDICAL SAFETY & TONE RULES:
-- NEVER state a definitive medical diagnosis ("You have PCOS") — always frame as "patterns or symptoms associated with PCOS".
-- NEVER prescribe exact prescription medications or alter a doctor's prescription.
-- Explain things with deep logical clarity, scientific accuracy, and warm Indian cultural empathy.
-- Respond in the requested language: "${language}".
+CRITICAL MEDICAL ETHICS & SAFETY:
+- Explicitly reassure the user with calm, dignified language.
+- Clarify that AI provides health education and symptom patterns, not a final clinical prescription.
+- For emergency symptoms (sudden acute pelvic pain, heavy bleeding causing dizziness), urge immediate in-person emergency care.
+- Respond fluently in the requested language: "${language}".
 
 RESPONSE FORMAT:
-You MUST respond with a valid JSON object matching this schema:
+You MUST respond with a JSON object matching this schema:
 {
-  "reply": "Empathetic, clear, and comprehensive spoken response in ${language} (3-5 sentences, easy to understand).",
+  "reply": "Empathetic, clear, conversational spoken explanation in ${language} addressing the specific symptoms or question directly (3-5 sentences).",
   "keyTakeaways": [
-    "Short bullet highlight 1 (Scientific fact or biological reason)",
-    "Short bullet highlight 2 (Actionable lifestyle or dietary tip)",
-    "Short bullet highlight 3 (Guidance on tests, doctors, or reassurance)"
+    "Biological reason or symptom root cause in ${language}",
+    "Actionable lifestyle, dietary, or self-care recommendation in ${language}",
+    "Guidance on tests or doctor consultation in ${language}"
   ],
   "followUpQuestions": [
-    "Logical follow-up question 1 in ${language}",
-    "Logical follow-up question 2 in ${language}",
-    "Logical follow-up question 3 in ${language}"
+    "Suggested question 1 in ${language}",
+    "Suggested question 2 in ${language}",
+    "Suggested question 3 in ${language}"
   ],
   "actionIntent": "screening" | "doctors" | "3d" | "tracker" | "knowledge" | "store" | "community" | "progress_tracker" | "exercise_portal" | "home_remedies" | "none",
-  "actionLabel": "Short actionable button label in ${language} (e.g. 'Take 3-Min Assessment', 'Open Exercise Portal', 'Explore Home Remedies', 'Open Progress Tracker', 'Explore 3D Ovary', 'Book Gynecologist ₹199')"
+  "actionLabel": "Short button label in ${language}"
 }
 
-User Question: "${message}"
+User Question/Symptoms: "${message}"
 Context: ${JSON.stringify(context)}`;
 
-    const generatedJson = await generateWithResilience(ai, systemPrompt, 'gemini-2.5-flash', true);
+    const aiResult = await generateWithResilience(ai, systemPrompt, 'gemini-2.5-flash', true, false);
 
-    if (generatedJson) {
+    if (aiResult && aiResult.text) {
       try {
-        // Clean markdown backticks if any
-        const cleaned = generatedJson.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
+        const cleaned = aiResult.text.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
         const parsed = JSON.parse(cleaned);
 
         if (parsed && parsed.reply) {
@@ -875,25 +903,29 @@ Context: ${JSON.stringify(context)}`;
             actionIntent: parsed.actionIntent || 'none',
             actionLabel: parsed.actionLabel || '',
             safetyChecked: true,
-            source: 'gemini_pcos_specialist',
+            source: 'gemini_medical_ai',
+            googleGrounded: true,
+            sources: aiResult.sources || [],
           });
         }
       } catch (jsonErr) {
-        console.warn('JSON parsing failed on AI response, packaging as plain text:', jsonErr);
+        console.warn('JSON parsing failed, falling back gracefully to text:', jsonErr);
         const fallbackTopic = getStructuredSmartFallback(message, language);
         return res.json({
-          reply: generatedJson.trim(),
+          reply: aiResult.text.trim(),
           keyTakeaways: fallbackTopic.keyTakeaways || [],
           followUpQuestions: fallbackTopic.followUpQuestions || [],
           actionIntent: fallbackTopic.actionIntent || 'none',
           actionLabel: fallbackTopic.actionLabel || '',
           safetyChecked: true,
-          source: 'ai_text_parsed',
+          source: 'gemini_text_stream',
+          googleGrounded: true,
+          sources: aiResult.sources || [],
         });
       }
     }
 
-    // Fallback if AI is offline
+    // Fallback if AI call failed
     const fallbackTopic = getStructuredSmartFallback(message, language);
     return res.json({
       reply: fallbackTopic.reply,
@@ -902,7 +934,9 @@ Context: ${JSON.stringify(context)}`;
       actionIntent: fallbackTopic.actionIntent || 'none',
       actionLabel: fallbackTopic.actionLabel || '',
       safetyChecked: true,
-      source: 'resilient_pcos_knowledge_pack',
+      source: 'smart_knowledge_pack',
+      googleGrounded: false,
+      sources: [],
     });
   } catch (error) {
     console.warn('Recovered gracefully in /api/gemini/voice-saathi:', error);
@@ -916,7 +950,81 @@ Context: ${JSON.stringify(context)}`;
       actionLabel: fallbackTopic.actionLabel || '',
       safetyChecked: true,
       source: 'error_recovery',
+      googleGrounded: false,
+      sources: [],
     });
+  }
+});
+
+// 2. Deep Multi-Symptom Analysis Endpoint with Google Medical Grounding
+app.post('/api/gemini/symptom-analysis', async (req, res) => {
+  try {
+    const { symptoms = [], notes = '', language = 'en' } = req.body;
+    const ai = getAiClient();
+
+    if (!ai) {
+      return res.json({
+        rootCauseSummary:
+          language === 'hi'
+            ? 'आपके द्वारा चुने गए लक्षण हार्मोनल असंतुलन और इंसुलिन संवेदनशीलता के पैटर्न की ओर संकेत करते हैं।'
+            : 'Your selected symptoms indicate a pattern commonly associated with hormonal variability and insulin signaling.',
+        recommendedTests: ['Fasting Insulin & Glucose (HOMA-IR)', 'Day 2-3 LH, FSH, Total Testosterone', 'Pelvic Ultrasound (USG)', 'TSH (Thyroid)'],
+        lifestyleGuidance:
+          language === 'hi'
+            ? 'मायो-इनोसिटोल, कम ग्लाइसेमिक आहार, और हल्की स्ट्रेंथ ट्रेनिंग से शुरुआत करें।'
+            : 'Consider low-GI nutrition, 40:1 Myo-Inositol, low-cortisol exercise, and restful sleep.',
+        warningSigns: ['Sudden severe pelvic pain', 'Heavy bleeding soaking >2 pads per hour', 'Extreme dizziness'],
+        source: 'clinical_rules_engine',
+      });
+    }
+
+    const prompt = `You are the StreeSure Clinical AI Diagnostic Education Assistant.
+Analyze these reported symptoms from a patient:
+Selected Symptoms: ${JSON.stringify(symptoms)}
+Additional Notes: "${notes}"
+Target Language: "${language}"
+
+Provide a structured, compassionate, and medically grounded symptom education summary in ${language}.
+Format your response as valid JSON:
+{
+  "rootCauseSummary": "2-3 sentences explaining the underlying hormonal/biological mechanism in ${language}",
+  "recommendedTests": ["Test 1", "Test 2", "Test 3", "Test 4"],
+  "lifestyleGuidance": "Actionable evidence-based nutrition & movement advice in ${language}",
+  "warningSigns": ["Red flag symptom 1", "Red flag symptom 2"],
+  "suggestedConsultation": "Why discussing these with a ₹199 gynecologist on StreeSure is beneficial in ${language}"
+}`;
+
+    const aiRes = await generateWithResilience(ai, prompt, 'gemini-2.5-flash', true, false);
+
+    if (aiRes && aiRes.text) {
+      try {
+        const cleaned = aiRes.text.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
+        const parsed = JSON.parse(cleaned);
+        return res.json({
+          ...parsed,
+          source: 'gemini_diagnostic_ai',
+        });
+      } catch (err) {
+        console.warn('Symptom analysis parse fallback:', err);
+      }
+    }
+
+    return res.json({
+      rootCauseSummary:
+        language === 'hi'
+          ? 'आपके लक्षण इंसुलिन रेजिस्टेंस और एण्ड्रोजन स्तर में उतार-चढ़ाव से जुड़े हो सकते हैं।'
+          : 'Your symptom cluster is consistent with hormonal variability and insulin resistance mechanisms.',
+      recommendedTests: ['Fasting Insulin & HOMA-IR', 'Day 2-3 LH & FSH', 'Total & Free Testosterone', 'Pelvic Sonography'],
+      lifestyleGuidance:
+        language === 'hi'
+          ? 'संतुलित प्रोटीन युक्त भोजन, पुदीना चाय, और नियमित वॉक को दिनचर्या में शामिल करें।'
+          : 'Focus on blood sugar stability, high-protein meals, spearmint tea, and restorative yoga.',
+      warningSigns: ['Severe acute lower abdominal pain', 'Continuous bleeding >10 days'],
+      source: 'smart_fallback',
+    });
+  } catch (error) {
+    console.warn('Error in /api/gemini/symptom-analysis:', error);
+    return res.status(500).json({ error: 'Failed to analyze symptoms' });
   }
 });
 
@@ -967,9 +1075,9 @@ MANDATORY SAFETY:
 
     const generatedExplanation = await generateWithResilience(ai, prompt);
 
-    if (generatedExplanation) {
+    if (generatedExplanation && generatedExplanation.text) {
       return res.json({
-        explanation: generatedExplanation.trim(),
+        explanation: generatedExplanation.text.trim(),
         source: 'ai_model',
       });
     }

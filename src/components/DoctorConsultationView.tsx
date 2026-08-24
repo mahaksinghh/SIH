@@ -114,10 +114,10 @@ export const DoctorConsultationView: React.FC<DoctorConsultationViewProps> = ({
             <span>Verified Clinical Network</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black">
-            Affordable Gynecologist Teleconsultations
+            Verified Gynecologist Consultations
           </h1>
           <p className="text-xs sm:text-sm text-teal-100 mt-1 max-w-xl">
-            Book subsidized 1-on-1 private video or audio sessions with certified women's health specialists in your mother tongue.
+            Connect with certified women's health specialists for clinical evaluation, ultrasound reviews, and personalized care in your mother tongue.
           </p>
         </div>
 

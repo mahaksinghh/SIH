@@ -100,7 +100,7 @@ export const Footer: React.FC<FooterProps> = ({
               <span className="text-xl font-black text-white tracking-tight">STREESURE</span>
             </div>
             <p className="text-xs text-rose-200/70 leading-relaxed max-w-sm">
-              An inclusive, multilingual women's health screening and care navigation platform bridging the digital, linguistic, and healthcare gap across India.
+              {t('brandDescription')}
             </p>
             <div className="flex items-center gap-2 text-xs font-semibold text-emerald-400">
               <ShieldCheck className="w-4 h-4" />
@@ -111,7 +111,7 @@ export const Footer: React.FC<FooterProps> = ({
           {/* Col 2: Core Platform Links */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-rose-300">
-              Care Ecosystem
+              {t('quickLinks')}
             </h4>
             <ul className="space-y-2 text-xs text-rose-200/70">
               <li>
@@ -120,7 +120,7 @@ export const Footer: React.FC<FooterProps> = ({
                   onClick={() => onNavigateTab('screening')}
                   className="hover:text-rose-300 transition"
                 >
-                  Free PCOS Screening
+                  {t('navScreening')}
                 </button>
               </li>
               <li>
@@ -129,7 +129,7 @@ export const Footer: React.FC<FooterProps> = ({
                   onClick={() => onNavigateTab('smart_kit')}
                   className="hover:text-pink-300 transition flex items-center gap-1.5"
                 >
-                  <span>Smart Screening Kit</span>
+                  <span>{t('navSmartKit')}</span>
                   <span className="text-[9px] font-bold bg-pink-900/80 border border-pink-500/40 text-pink-300 px-1.5 py-0.2 rounded-full">
                     Future Scope
                   </span>
@@ -141,7 +141,7 @@ export const Footer: React.FC<FooterProps> = ({
                   onClick={onOpenVoiceSaathi}
                   className="hover:text-rose-300 transition flex items-center gap-1"
                 >
-                  <span>Voice Saathi AI</span>
+                  <span>{t('navVoiceAssistant')}</span>
                   <span className="text-[9px] font-bold bg-rose-900/80 border border-rose-500/40 text-rose-300 px-1.5 py-0.2 rounded-full">
                     Voice
                   </span>
@@ -153,7 +153,7 @@ export const Footer: React.FC<FooterProps> = ({
                   onClick={onOpen3DModal}
                   className="hover:text-pink-300 transition"
                 >
-                  3D Pelvic & Follicle Model
+                  {t('navAnatomy3D')}
                 </button>
               </li>
               <li>
@@ -162,7 +162,7 @@ export const Footer: React.FC<FooterProps> = ({
                   onClick={() => onNavigateTab('period_tracker')}
                   className="hover:text-rose-300 transition"
                 >
-                  Menstrual Cycle Diary
+                  {t('navPeriodTracker')}
                 </button>
               </li>
               <li>
@@ -171,7 +171,7 @@ export const Footer: React.FC<FooterProps> = ({
                   onClick={() => onNavigateTab('doctors')}
                   className="hover:text-rose-300 transition"
                 >
-                  Consult Gynecologist (₹199)
+                  {t('navDoctors')}
                 </button>
               </li>
             </ul>
@@ -180,7 +180,7 @@ export const Footer: React.FC<FooterProps> = ({
           {/* Col 3: Community & Grassroots */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-rose-300">
-              Grassroots
+              {t('navCommunity')}
             </h4>
             <ul className="space-y-2 text-xs text-rose-200/70">
               <li>
@@ -189,7 +189,7 @@ export const Footer: React.FC<FooterProps> = ({
                   onClick={() => onNavigateTab('asha_dashboard')}
                   className="hover:text-teal-300 transition"
                 >
-                  ASHA Field Portal
+                  {t('ashaWorkerLogin')}
                 </button>
               </li>
               <li>
@@ -198,7 +198,7 @@ export const Footer: React.FC<FooterProps> = ({
                   onClick={() => onNavigateTab('ngo_dashboard')}
                   className="hover:text-teal-300 transition"
                 >
-                  NGO Rural Campaigns
+                  {t('ngoPartnerLogin')}
                 </button>
               </li>
               <li>
@@ -207,7 +207,7 @@ export const Footer: React.FC<FooterProps> = ({
                   onClick={() => onNavigateTab('community')}
                   className="hover:text-teal-300 transition"
                 >
-                  Village Camp Network
+                  {t('navCommunity')}
                 </button>
               </li>
               <li>
@@ -216,7 +216,7 @@ export const Footer: React.FC<FooterProps> = ({
                   onClick={() => onNavigateTab('store')}
                   className="hover:text-teal-300 transition"
                 >
-                  Affordable Care Store
+                  {t('navStore')}
                 </button>
               </li>
               <li>
@@ -225,7 +225,7 @@ export const Footer: React.FC<FooterProps> = ({
                   onClick={() => onNavigateTab('knowledge')}
                   className="hover:text-teal-300 transition"
                 >
-                  Myths vs Facts Hub
+                  {t('navKnowledgeHub')}
                 </button>
               </li>
             </ul>
@@ -234,7 +234,7 @@ export const Footer: React.FC<FooterProps> = ({
           {/* Col 4: Languages */}
           <div className="space-y-3">
             <h4 className="text-xs font-bold uppercase tracking-wider text-rose-300">
-              Languages Spoken
+              {t('chooseLanguage')}
             </h4>
             <div className="grid grid-cols-2 gap-1.5 text-xs text-rose-200/70">
               {SUPPORTED_LANGUAGES.map((l) => (
@@ -256,7 +256,7 @@ export const Footer: React.FC<FooterProps> = ({
         {/* Mandatory Medical Disclaimer Banner */}
         <div className="pt-8 border-t border-rose-500/20 text-[11px] text-rose-200/70 leading-relaxed space-y-2">
           <p>
-            <strong className="text-rose-200">CRITICAL MEDICAL DISCLAIMER:</strong> StreeSure provides preliminary, non-diagnostic health pattern assessments and educational care navigation only. It is NOT a clinical diagnosis of Polycystic Ovary Syndrome (PCOS) or any other medical condition, nor does it provide medical prescriptions. If you experience severe symptoms, pelvic pain, or irregular bleeding, please consult a qualified healthcare provider immediately.
+            <strong className="text-rose-200">CRITICAL MEDICAL DISCLAIMER:</strong> {t('medicalDisclaimer')}
           </p>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between text-rose-300/50 text-[10px] pt-4 border-t border-rose-500/10 gap-2">
             <span>© 2026 StreeSure Health Platform. Built for Smart India Hackathon & Grassroots Impact.</span>

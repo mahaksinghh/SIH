@@ -161,13 +161,16 @@ export const CareStoreView: React.FC<CareStoreViewProps> = ({
         <div className="relative z-10 max-w-2xl space-y-3">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-bold">
             <Sparkles className="w-3.5 h-3.5 text-pink-400" />
-            <span>Subsidized Grassroots Menstrual & Period Care</span>
+            <span>Community Menstrual Care & Hygiene</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-            StreeSure Care Store
+            StreeSure Essentials
           </h1>
+          <p className="text-sm font-semibold text-pink-200">
+            Need Period Essentials? Find affordable menstrual-care products near you.
+          </p>
           <p className="text-xs sm:text-sm text-rose-100/80 leading-relaxed">
-            Essential herbal period pain tablets, soothing rechargeable hot bags, continuous heat patches, TENS pulse stimulators, bio-organic pads, and medical-grade cups subsidized for affordable rural and community access.
+            Explore subsidized sanitary pads, menstrual cups, cramp relief patches, hot water bags, and intimate hygiene kits with discreet rural and doorstep delivery.
           </p>
           <div className="flex flex-wrap items-center gap-4 text-xs text-rose-300/80 pt-1">
             <span className="flex items-center gap-1">

@@ -67,8 +67,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         { id: 'progress_tracker', label: t('navProgressTracker'), icon: TrendingUp },
         { id: 'exercise_portal', label: t('navExercisePortal'), icon: Dumbbell },
         { id: 'home_remedies', label: t('navHomeRemedies'), icon: Leaf },
-        { id: 'smart_kit', label: 'Smart Kit (R&D)', icon: Cpu },
-        { id: 'anatomy3d', label: '3D Anatomy', icon: Layers, isAction: true },
+        { id: 'smart_kit', label: t('navSmartKit'), icon: Cpu },
+        { id: 'anatomy3d', label: t('navAnatomy3D'), icon: Layers, isAction: true },
         { id: 'doctors', label: t('navDoctors'), icon: Stethoscope },
         { id: 'knowledge', label: t('navKnowledgeHub'), icon: BookOpen },
         { id: 'store', label: t('navCareStore'), icon: ShoppingBag },
@@ -78,48 +78,48 @@ export const Navbar: React.FC<NavbarProps> = ({
 
     if (currentUser.role === 'ASHA') {
       return [
-        { id: 'asha_dashboard', label: 'ASHA Field Portal', icon: Users },
-        { id: 'screening', label: 'Beneficiary Screening', icon: Activity },
-        { id: 'progress_tracker', label: 'Beneficiary Progress', icon: TrendingUp },
-        { id: 'home_remedies', label: 'Ayush Remedies', icon: Leaf },
-        { id: 'smart_kit', label: 'Community Kit (R&D)', icon: Cpu },
-        { id: 'anatomy3d', label: '3D Pelvic Demo', icon: Layers, isAction: true },
-        { id: 'community', label: 'Village Camps', icon: Globe },
-        { id: 'knowledge', label: 'Training Guides', icon: BookOpen },
+        { id: 'asha_dashboard', label: t('ashaFieldPortal'), icon: Users },
+        { id: 'screening', label: t('beneficiaryScreening'), icon: Activity },
+        { id: 'progress_tracker', label: t('beneficiaryProgress'), icon: TrendingUp },
+        { id: 'home_remedies', label: t('ayushRemedies'), icon: Leaf },
+        { id: 'smart_kit', label: t('communityKit'), icon: Cpu },
+        { id: 'anatomy3d', label: t('pelvicDemo'), icon: Layers, isAction: true },
+        { id: 'community', label: t('villageCamps'), icon: Globe },
+        { id: 'knowledge', label: t('trainingGuides'), icon: BookOpen },
       ];
     }
 
     if (currentUser.role === 'DOCTOR') {
       return [
-        { id: 'doctor_dashboard', label: 'Doctor Portal', icon: Stethoscope },
-        { id: 'progress_tracker', label: 'Patient Telemetry', icon: TrendingUp },
-        { id: 'doctors', label: 'Doctor Directory', icon: UserIcon },
-        { id: 'smart_kit', label: 'Kit Summary (R&D)', icon: Cpu },
-        { id: 'anatomy3d', label: '3D Clinical Model', icon: Layers, isAction: true },
-        { id: 'knowledge', label: 'Clinical Hub', icon: BookOpen },
+        { id: 'doctor_dashboard', label: t('doctorLogin'), icon: Stethoscope },
+        { id: 'progress_tracker', label: t('patientTelemetry'), icon: TrendingUp },
+        { id: 'doctors', label: t('doctorDirectory'), icon: UserIcon },
+        { id: 'smart_kit', label: t('navSmartKit'), icon: Cpu },
+        { id: 'anatomy3d', label: t('navAnatomy3D'), icon: Layers, isAction: true },
+        { id: 'knowledge', label: t('clinicalHub'), icon: BookOpen },
       ];
     }
 
     if (currentUser.role === 'NGO') {
       return [
-        { id: 'ngo_dashboard', label: 'NGO Operations', icon: Users },
-        { id: 'community', label: 'Rural Campaigns', icon: Globe },
-        { id: 'home_remedies', label: 'Nutrition & Remedies', icon: Leaf },
-        { id: 'smart_kit', label: 'Smart Kit Scope', icon: Cpu },
-        { id: 'anatomy3d', label: '3D Awareness Tool', icon: Layers, isAction: true },
-        { id: 'store', label: 'Subsidized Kits', icon: ShoppingBag },
+        { id: 'ngo_dashboard', label: t('ngoOperations'), icon: Users },
+        { id: 'community', label: t('ruralCampaigns'), icon: Globe },
+        { id: 'home_remedies', label: t('navHomeRemedies'), icon: Leaf },
+        { id: 'smart_kit', label: t('navSmartKit'), icon: Cpu },
+        { id: 'anatomy3d', label: t('navAnatomy3D'), icon: Layers, isAction: true },
+        { id: 'store', label: t('subsidizedKits'), icon: ShoppingBag },
       ];
     }
 
     if (currentUser.role === 'ADMIN') {
       return [
-        { id: 'admin_dashboard', label: 'Admin Analytics', icon: Shield },
-        { id: 'screening', label: 'Screening Engine', icon: Activity },
-        { id: 'progress_tracker', label: 'Progress Matrix', icon: TrendingUp },
-        { id: 'smart_kit', label: 'Kit R&D Telemetry', icon: Cpu },
-        { id: 'doctors', label: 'Doctors', icon: Stethoscope },
-        { id: 'community', label: 'NGO Camps', icon: Globe },
-        { id: 'store', label: 'Care Store', icon: ShoppingBag },
+        { id: 'admin_dashboard', label: t('adminAnalytics'), icon: Shield },
+        { id: 'screening', label: t('screeningEngine'), icon: Activity },
+        { id: 'progress_tracker', label: t('navProgressTracker'), icon: TrendingUp },
+        { id: 'smart_kit', label: t('navSmartKit'), icon: Cpu },
+        { id: 'doctors', label: t('navDoctors'), icon: Stethoscope },
+        { id: 'community', label: t('villageCamps'), icon: Globe },
+        { id: 'store', label: t('navCareStore'), icon: ShoppingBag },
       ];
     }
 
@@ -133,8 +133,8 @@ export const Navbar: React.FC<NavbarProps> = ({
       { id: 'period_tracker', label: t('navPeriodTracker'), icon: Calendar },
       { id: 'health_journey', label: t('navHealthJourney'), icon: Activity },
       { id: 'doctors', label: t('navDoctors'), icon: Stethoscope },
-      { id: 'smart_kit', label: 'Smart Kit (R&D)', icon: Cpu },
-      { id: 'anatomy3d', label: '3D Anatomy', icon: Layers, isAction: true },
+      { id: 'smart_kit', label: t('navSmartKit'), icon: Cpu },
+      { id: 'anatomy3d', label: t('navAnatomy3D'), icon: Layers, isAction: true },
       { id: 'knowledge', label: t('navKnowledgeHub'), icon: BookOpen },
       { id: 'store', label: t('navCareStore'), icon: ShoppingBag },
       { id: 'community', label: t('navCommunity'), icon: Users },
@@ -165,7 +165,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               title="National Women Health Helpline"
             >
               <PhoneCall className="w-3 h-3 text-emerald-400" />
-              <span>Helpline: 104 / 181 (Toll-Free)</span>
+              <span>{t('helplineText')}</span>
             </a>
             <span className="text-rose-900">|</span>
             <button
@@ -173,7 +173,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-1 font-bold text-pink-300 hover:text-pink-200 transition"
             >
               <Mic className="w-3 h-3 text-rose-400 animate-pulse" />
-              <span>Voice Saathi (बोलकर पूछें)</span>
+              <span>{t('talkToVoiceSaathi')}</span>
             </button>
           </div>
         </div>
@@ -257,7 +257,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full btn-rose-primary text-xs font-bold transition-all hover:scale-102"
             >
               <Mic className="w-3.5 h-3.5 text-white animate-pulse" />
-              <span className="hidden sm:inline">Voice Saathi</span>
+              <span className="hidden sm:inline">{t('talkToVoiceSaathi')}</span>
               <span className="text-[9px] bg-black/20 px-1.5 py-0.5 rounded-full font-mono font-bold">AI</span>
             </button>
 
@@ -310,7 +310,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   type="button"
                   id="btn-logout"
                   onClick={onLogout}
-                  title="Sign Out"
+                  title={t('signOut')}
                   className="p-2 rounded-full text-slate-400 hover:text-rose-300 hover:bg-rose-500/20 border border-rose-500/20 transition"
                 >
                   <LogOut className="w-4 h-4" />
@@ -324,7 +324,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClick={() => onOpenAuth('signin')}
                   className="px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-rose-100 border border-rose-500/30 text-xs font-semibold transition"
                 >
-                  Sign In
+                  {t('signIn')}
                 </button>
                 <button
                   type="button"
@@ -332,7 +332,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClick={() => onOpenAuth('signup')}
                   className="hidden sm:inline-flex px-3 py-1.5 rounded-full btn-rose-primary text-white text-xs font-bold transition shadow-xs"
                 >
-                  Register
+                  {t('register')}
                 </button>
               </div>
             )}
