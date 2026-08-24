@@ -198,56 +198,54 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
       prompts: {
         hi: [
           'क्या पीसीओएस में कभी गर्भधारण (Pregnancy) नहीं हो सकता?',
-          'क्या पीसीओएस सिर्फ मोटे लोगों को ही होता है?',
-          'क्या गर्भनिरोधक गोलियां (Birth Control) ही पीसीओएस का एकमात्र इलाज हैं?',
-          'क्या अंडाशय में खतरनाक सिस्ट या ट्यूमर होते हैं?',
-          'क्या पीसीओएस में रोटी, चावल और दूध पूरी तरह छोड़ना जरूरी है?',
+          'क्या केवल मोटे लोगों को ही पीसीओएस होता है?',
+          'क्या पीसीओएस में अंडाशय में खतरनाक सिस्ट बन जाते हैं?',
+          'क्या गर्भनिरोधक गोलियां (Birth Control) ही एकमात्र इलाज हैं?',
+          'क्या मुझे रोटी, चावल और दूध पूरी तरह छोड़ना पड़ेगा?',
         ],
         en: [
-          'Myth vs Fact: Does PCOS cause permanent infertility?',
-          'Myth vs Fact: Do only overweight women get PCOS?',
-          'Myth vs Fact: Are birth control pills the only cure for PCOS?',
-          'Myth vs Fact: Are the cysts on ovaries dangerous tumors?',
-          'Myth vs Fact: Do I need to eliminate all carbs, gluten, and dairy?',
+          'Does PCOS mean I will never be able to get pregnant?',
+          'Do only overweight women get PCOS or can thin women have it too?',
+          'Are ovarian cysts in PCOS actually tumors or follicles?',
+          'Are contraceptive birth control pills the only medical treatment?',
+          'Do I need to eliminate all dairy, gluten, and carbohydrates?',
         ],
       },
     },
     nutrition: {
-      label: currentLanguage === 'hi' ? 'आहार व इनोसिटोल' : 'Diet & Inositol',
+      label: currentLanguage === 'hi' ? 'आहार व सप्लीमेंट्स' : 'Nutrition & Inositol',
       icon: Sparkles,
       prompts: {
         hi: [
-          'मायो-इनोसिटोल और डी-काइरो इनोसिटोल (40:1) कैसे काम करता है?',
-          'स्पीयरमिंट (पुदीने की चाय) चेहरे के बाल कम करने में कैसे मदद करती है?',
-          'पीसीओएस के लिए कम ग्लाइसेमिक इंडेक्स (Low GI) डाइट क्या है?',
-          'सीड साइकलिंग (Seed Cycling) क्या है और इसे कैसे करें?',
-          'पीसीओएस में कौन सी स्ट्रेंथ और वेट एक्सरसाइज सबसे फायदेमंद है?',
+          'मायो-इनोसिटोल (Myo-Inositol 40:1) अंडाशय और पीरियड्स को कैसे ठीक करता है?',
+          'इंसुलिन रेजिस्टेंस कम करने के लिए भारतीय थाली में क्या बदलाव करें?',
+          'क्या पीसीओएस में सीड साइकिलिंग (Seed Cycling) से फायदा होता है?',
+          'प्रोटीन और फाइबर बढ़ाने के लिए शाकाहारी स्रोत कौन से हैं?',
+          'केयर स्टोर में उपलब्ध पीसीओएस वेलनेस टैबलेट्स के बारे में बताएं।',
         ],
         en: [
-          'How does Myo-Inositol & D-Chiro-Inositol (40:1 ratio) restore periods?',
-          'How does Spearmint tea naturally lower free testosterone?',
-          'What is a Low Glycemic Index (GI) balanced PCOS meal plan?',
-          'What is Seed Cycling and how does it support hormones?',
-          'Why is strength & resistance training best for insulin sensitivity?',
+          'How does Myo-Inositol and D-Chiro Inositol (40:1) restore ovulation?',
+          'What is the optimal Indian low-glycemic meal plate for PCOS?',
+          'What is Seed Cycling and does it clinically balance estrogen/progesterone?',
+          'Best vegetarian protein sources to prevent post-meal glucose spikes?',
+          'Tell me about the PCOS herbal tablets available in the Care Store.',
         ],
       },
     },
     exercise: {
-      label: currentLanguage === 'hi' ? 'व्यायाम व योग' : 'Exercise & Yoga',
+      label: currentLanguage === 'hi' ? 'व्यायाम व योग' : 'Workouts & Yoga',
       icon: Dumbbell,
       prompts: {
         hi: [
-          'पीसीओएस में लो-कोर्टिसोल एक्सरसाइज क्यों जरूरी है?',
-          'माहवारी नियमित करने के लिए कौन से योगासन सबसे अच्छे हैं?',
-          'स्ट्रेंथ ट्रेनिंग से इंसुलिन संवेदनशीलता कैसे सुधरती है?',
-          'क्या पीसीओएस में रोजाना भारी कार्डियो या ज़ुम्बा करना ठीक है?',
-          'गाइडेड एक्सरसाइज पोर्टल कैसे शुरू करें?',
+          'पीसीओएस में हाई-इंटेंसिटी (HIIT) कार्डियो से तनाव (Cortisol) क्यों बढ़ता है?',
+          'मांसपेशियों में ग्लूकोज सोखने (GLUT4) के लिए कौन से व्यायाम सबसे अच्छे हैं?',
+          'पेल्विक एरिया में ब्लड सर्कुलेशन बढ़ाने वाले 3 मुख्य योगासन कौन से हैं?',
+          'क्या एक्सरसाइज पोर्टल में दिए गए वीडियो रूटीन को देखना सुरक्षित है?',
         ],
         en: [
-          'Why are low-cortisol workouts essential for PCOS hormonal balance?',
-          'What are the best pelvic yoga asanas for irregular periods?',
-          'How does progressive strength training improve insulin sensitivity?',
-          'Should I avoid high-intensity HIIT burnout cardio with PCOS?',
+          'Why should I avoid high-cortisol burnout HIIT and focus on strength/walking?',
+          'How does low-impact strength training activate GLUT4 glucose clearance?',
+          'Which restorative yoga asanas improve ovarian blood circulation?',
           'How do I explore guided routines in the Exercise Portal?',
         ],
       },
@@ -368,7 +366,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
           language: currentLanguage,
           context: {
             userRole: currentUser?.role || 'USER',
-            userName: currentUser?.fullName || 'Guest',
+            userName: currentUser?.fullName || 'Friend',
           },
         }),
       });
@@ -397,7 +395,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
 
       setMessages((prev) => [...prev, saathiMsg]);
 
-      // Play soft chime and immediately talk to user
+      // Play chime and immediately talk to user
       if (autoVoiceEnabled) {
         playChime('reply');
         setCurrentlySpeakingId(saathiMsg.id);
@@ -631,27 +629,27 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/75 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-3xl w-full h-[90vh] max-h-[780px] shadow-2xl border border-rose-100 flex flex-col overflow-hidden relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
+      <div className="bg-white rounded-3xl max-w-3xl w-full h-[90vh] max-h-[780px] shadow-2xl border border-rose-200 flex flex-col overflow-hidden relative">
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-rose-700 via-rose-600 to-teal-800 text-white p-4 sm:p-5 flex items-center justify-between shadow-md">
+        <div className="bg-gradient-to-r from-rose-700 via-rose-600 to-pink-700 text-white p-4 sm:p-5 flex items-center justify-between shadow-md">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-amber-200 shadow-inner">
+            <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center text-white shadow-inner">
               <Bot className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-bold text-base text-white">Voice Saathi AI</h3>
-                <span className="bg-emerald-400 text-emerald-950 text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                  PCOS Specialist
+                <h3 className="font-extrabold text-base text-white">Voice Saathi AI</h3>
+                <span className="bg-white/25 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider border border-white/30">
+                  Instant Voice Doctor
                 </span>
                 <span className="hidden sm:inline-flex items-center gap-1 bg-white/20 text-white text-[10px] font-semibold px-2 py-0.5 rounded-full">
                   <Globe className="w-3 h-3 text-amber-300" />
                   <span>Google Grounded</span>
                 </span>
               </div>
-              <p className="text-[11px] text-rose-100">
-                Evidence-Based PCOS Knowledge, 3D Anatomy & Care Navigation
+              <p className="text-xs text-rose-100 font-medium">
+                Talk directly about delayed periods, cramps, acne, and health problems
               </p>
             </div>
           </div>
@@ -669,16 +667,16 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                   setCurrentlySpeakingId(null);
                 }
               }}
-              className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs ${
                 autoVoiceEnabled
-                  ? 'bg-emerald-500 hover:bg-emerald-400 text-white'
-                  : 'bg-white/20 hover:bg-white/30 text-white/90'
+                  ? 'bg-white text-rose-900 shadow-md'
+                  : 'bg-white/20 hover:bg-white/30 text-white'
               }`}
               title="Toggle automatic spoken replies"
             >
               {autoVoiceEnabled ? (
                 <>
-                  <Volume2 className="w-3.5 h-3.5 animate-pulse" />
+                  <Volume2 className="w-3.5 h-3.5 text-rose-700 animate-pulse" />
                   <span className="hidden sm:inline">
                     {currentLanguage === 'hi' ? 'बोलकर जवाब (चालू)' : 'Voice Talking (ON)'}
                   </span>
@@ -693,32 +691,11 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
               )}
             </button>
 
-            {/* Multi-Symptom Diagnostic Button */}
-            <button
-              type="button"
-              onClick={() => setShowSymptomDrawer(true)}
-              className="bg-amber-400 hover:bg-amber-300 text-slate-900 text-xs font-bold px-2.5 py-1.5 rounded-xl shadow-xs flex items-center gap-1.5 transition"
-              title="Open Multi-Symptom Diagnostic Tool"
-            >
-              <Search className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Symptom Checker</span>
-            </button>
-
-            {/* Clear history */}
-            <button
-              type="button"
-              onClick={handleClearHistory}
-              title="Clear Conversation"
-              className="p-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/20 transition text-xs flex items-center gap-1"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
-
             {/* Language Switcher */}
             <select
               value={currentLanguage}
               onChange={(e) => onLanguageChange(e.target.value as LanguageCode)}
-              className="bg-white/20 text-white text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-white/30 cursor-pointer focus:outline-hidden"
+              className="bg-white/20 text-white text-xs font-bold px-2.5 py-1.5 rounded-xl border border-white/30 cursor-pointer focus:outline-none"
             >
               {SUPPORTED_LANGUAGES.map((l) => (
                 <option key={l.code} value={l.code} className="text-slate-900 font-medium">
@@ -734,7 +711,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                 stopSpeaking();
                 onClose();
               }}
-              className="p-1.5 rounded-xl text-white/80 hover:text-white hover:bg-white/20 transition"
+              className="p-1.5 rounded-xl text-white hover:bg-white/20 transition"
             >
               <X className="w-5 h-5" />
             </button>
@@ -742,17 +719,17 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
         </div>
 
         {/* Real Symptoms Quick Bar */}
-        <div className="bg-rose-50/90 border-b border-rose-100 px-3 py-2 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+        <div className="bg-rose-50 border-b border-rose-200 px-3 py-2 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
           <span className="text-[10px] font-extrabold text-rose-900 uppercase shrink-0 flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-rose-600" />
-            {currentLanguage === 'hi' ? 'वास्तविक लक्षण:' : 'Real Symptoms:'}
+            {currentLanguage === 'hi' ? 'लक्षण चुनें:' : 'Tap Problem to Ask:'}
           </span>
           {COMMON_REAL_SYMPTOMS.map((sym) => (
             <button
               key={sym.id}
               type="button"
               onClick={() => handleSendMessage(sym.prompt)}
-              className="px-2.5 py-1 rounded-lg bg-white hover:bg-rose-100 text-rose-950 text-[11px] font-semibold whitespace-nowrap border border-rose-200 shadow-2xs transition shrink-0"
+              className="px-2.5 py-1 rounded-lg bg-white hover:bg-rose-100 text-slate-800 hover:text-rose-900 text-xs font-bold whitespace-nowrap border border-rose-200 shadow-2xs transition shrink-0"
             >
               {currentLanguage === 'hi' ? sym.hi : sym.label}
             </button>
@@ -760,7 +737,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
         </div>
 
         {/* Category Navigation Bar for Deep PCOS Topics */}
-        <div className="bg-slate-100 border-b border-slate-200/80 px-3 py-2 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
+        <div className="bg-slate-50 border-b border-slate-200 px-3 py-2 flex items-center gap-1.5 overflow-x-auto scrollbar-none">
           {(
             [
               { key: 'symptoms', label: categoryPCOSQuestions.symptoms.label, icon: Activity },
@@ -782,8 +759,8 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                 onClick={() => setActiveCategory(cat.key)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shrink-0 ${
                   isActive
-                    ? 'bg-rose-600 text-white shadow-xs'
-                    : 'bg-white text-slate-700 hover:bg-rose-50 hover:text-rose-700 border border-slate-200/80'
+                    ? 'btn-rose-primary text-white shadow-xs'
+                    : 'bg-white text-slate-700 hover:bg-rose-50 hover:text-rose-700 border border-slate-200'
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -795,7 +772,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
 
         {/* Audio Visualizer & Waveform Animation Bar */}
         {(isListening || liveTranscript || currentlySpeakingId || isLoadingAi) && (
-          <div className="bg-rose-50/90 border-b border-rose-200/80 py-2.5 px-4 flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-rose-800 animate-in fade-in">
+          <div className="bg-rose-50 border-b border-rose-200 py-2.5 px-4 flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-rose-900 animate-in fade-in">
             <div className="flex items-center gap-2.5 flex-1 min-w-0">
               <div className="flex items-center gap-0.5 h-4 shrink-0">
                 <span className="w-1 bg-rose-600 rounded-full animate-[bounce_0.6s_infinite_100ms] h-3" />
@@ -806,22 +783,22 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
               </div>
               <div className="flex-1 min-w-0">
                 {liveTranscript ? (
-                  <p className="text-xs font-medium text-slate-800 truncate">
-                    <span className="text-rose-600 font-bold mr-1">
+                  <p className="text-xs font-medium text-slate-900 truncate">
+                    <span className="text-rose-700 font-bold mr-1">
                       {currentLanguage === 'hi' ? 'सुना जा रहा है:' : 'Hearing:'}
                     </span>
                     &ldquo;{liveTranscript}&rdquo;
                   </p>
                 ) : (
-                  <span className="text-xs font-semibold text-rose-900">
+                  <span className="text-xs font-bold text-rose-900">
                     {isListening
                       ? currentLanguage === 'hi'
                         ? 'आपकी आवाज़ सुनी जा रही है (बोलना बंद करते ही तुरंत उत्तर मिलेगा)...'
-                        : 'Listening to your voice (auto-replies with ultra-low latency)...'
+                        : 'Listening to your voice (auto-replies with instant answer)...'
                       : isLoadingAi
                       ? currentLanguage === 'hi'
                         ? '⚡ वॉयस साथी तुरंत उत्तर तैयार कर रही है...'
-                        : '⚡ Voice Saathi is generating instant response...'
+                        : '⚡ Voice Saathi is synthesizing medical response...'
                       : currentLanguage === 'hi'
                       ? 'उत्तर बोला जा रहा है...'
                       : 'Speaking answer aloud...'}
@@ -835,7 +812,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                 <button
                   type="button"
                   onClick={stopVoiceInput}
-                  className="bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-1.5 font-bold text-[11px] px-3 py-1 rounded-xl shadow-xs transition"
+                  className="btn-rose-primary text-white flex items-center gap-1.5 font-bold text-xs px-3 py-1 rounded-xl shadow-xs transition"
                 >
                   <Zap className="w-3 h-3" />
                   <span>{currentLanguage === 'hi' ? 'उत्तर पाएं' : 'Send Voice Note'}</span>
@@ -849,10 +826,10 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                     stopSpeaking();
                     setCurrentlySpeakingId(null);
                   }}
-                  className="text-slate-600 hover:text-rose-600 flex items-center gap-1 font-semibold text-[11px] bg-white px-2 py-0.5 rounded-lg border border-rose-200 shadow-2xs"
+                  className="text-slate-700 hover:text-rose-700 flex items-center gap-1 font-bold text-xs bg-white px-2.5 py-1 rounded-lg border border-rose-200 shadow-2xs"
                 >
                   <VolumeX className="w-3.5 h-3.5 text-rose-600" />
-                  <span>Mute</span>
+                  <span>Stop Speaking</span>
                 </button>
               )}
             </div>
@@ -860,14 +837,14 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
         )}
 
         {/* Messages Chat Area */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-slate-50/60">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-slate-50">
           {(messages || []).map((msg) => (
             <div
               key={msg.id}
               className={`flex gap-2.5 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
               {msg.sender === 'saathi' && (
-                <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-rose-700 to-rose-500 text-white flex items-center justify-center shrink-0 shadow-xs mt-1">
+                <div className="w-8 h-8 rounded-xl btn-rose-primary text-white flex items-center justify-center shrink-0 shadow-xs mt-1">
                   <Bot className="w-4 h-4" />
                 </div>
               )}
@@ -875,13 +852,13 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
               <div
                 className={`max-w-[85%] sm:max-w-[80%] rounded-2xl p-4 text-xs sm:text-sm leading-relaxed shadow-xs space-y-2.5 ${
                   msg.sender === 'user'
-                    ? 'bg-rose-600 text-white font-medium rounded-tr-none'
-                    : 'bg-white text-slate-800 border border-slate-200/90 rounded-tl-none'
+                    ? 'btn-rose-primary text-white font-medium rounded-tr-none'
+                    : 'bg-white text-slate-900 border border-slate-200 rounded-tl-none'
                 }`}
               >
                 {/* Main text message */}
                 <div className="space-y-2">
-                  <p className="whitespace-pre-line text-slate-800 font-normal leading-relaxed">{msg.text}</p>
+                  <p className="whitespace-pre-line text-slate-900 font-medium leading-relaxed">{msg.text}</p>
                   
                   {msg.sender === 'saathi' && (
                     <div className="flex items-center gap-2 pt-1">
@@ -890,8 +867,8 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                         onClick={() => handleToggleSpeakMessage(msg)}
                         className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-2xs ${
                           currentlySpeakingId === msg.id
-                            ? 'bg-rose-600 text-white shadow-rose-200 ring-2 ring-rose-300'
-                            : 'bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200'
+                            ? 'btn-rose-primary text-white shadow-md'
+                            : 'bg-rose-50 hover:bg-rose-100 text-rose-900 border border-rose-200'
                         }`}
                       >
                         {currentlySpeakingId === msg.id ? (
@@ -906,7 +883,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                           </>
                         ) : (
                           <>
-                            <Volume2 className="w-3.5 h-3.5 text-rose-600" />
+                            <Volume2 className="w-3.5 h-3.5 text-rose-700" />
                             <span>{currentLanguage === 'hi' ? '🔊 बोलकर सुनो (Listen)' : '🔊 Listen Aloud'}</span>
                           </>
                         )}
@@ -919,7 +896,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                 {msg.sender === 'saathi' &&
                   msg.keyTakeaways &&
                   msg.keyTakeaways.length > 0 && (
-                    <div className="bg-rose-50/70 border border-rose-100 rounded-xl p-3 space-y-1.5 text-xs text-slate-700">
+                    <div className="bg-rose-50 border border-rose-200 rounded-xl p-3 space-y-1.5 text-xs text-slate-800">
                       <div className="flex items-center gap-1.5 font-bold text-rose-900 text-[11px] uppercase tracking-wider">
                         <Sparkles className="w-3.5 h-3.5 text-rose-600" />
                         <span>
@@ -928,7 +905,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                       </div>
                       <ul className="space-y-1">
                         {(msg.keyTakeaways || []).map((point, pIdx) => (
-                          <li key={pIdx} className="flex items-start gap-1.5 text-slate-700">
+                          <li key={pIdx} className="flex items-start gap-1.5 text-slate-800 font-medium">
                             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
                             <span>{point}</span>
                           </li>
@@ -943,7 +920,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                     <button
                       type="button"
                       onClick={() => handleActionClick(msg.actionIntent!)}
-                      className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 text-white font-bold text-xs shadow-xs transition"
+                      className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-xl btn-rose-primary text-white font-bold text-xs shadow-xs transition hover:scale-101"
                     >
                       <span className="flex items-center gap-1.5">
                         {msg.actionIntent === '3d' && <Layers className="w-4 h-4 text-amber-300" />}
@@ -995,7 +972,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
 
                 {/* Google Grounding Verified Citations */}
                 {msg.sender === 'saathi' && msg.sources && msg.sources.length > 0 && (
-                  <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-xl p-2.5 space-y-1.5 text-[11px] text-emerald-950">
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 space-y-1.5 text-xs text-emerald-950">
                     <div className="flex items-center gap-1.5 font-bold text-emerald-800 text-[10px] uppercase tracking-wider">
                       <Globe className="w-3 h-3 text-emerald-600" />
                       <span>{currentLanguage === 'hi' ? 'गूगल मेडिकल साक्ष्य व संदर्भ:' : 'Grounded Google Medical Evidence:'}</span>
@@ -1007,10 +984,10 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                           href={src.uri}
                           target="_blank"
                           rel="noreferrer"
-                          className="inline-flex items-center gap-1 bg-white hover:bg-emerald-100/60 text-emerald-900 border border-emerald-200 px-2 py-0.5 rounded-lg text-[10px] font-medium transition"
+                          className="inline-flex items-center gap-1 bg-white hover:bg-emerald-100 text-emerald-900 border border-emerald-200 px-2 py-0.5 rounded-lg text-xs font-semibold transition"
                         >
                           <span>{src.title || 'Medical Reference'}</span>
-                          <ExternalLink className="w-2.5 h-2.5 text-emerald-600" />
+                          <ExternalLink className="w-3 h-3 text-emerald-600" />
                         </a>
                       ))}
                     </div>
@@ -1022,7 +999,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                   msg.followUpQuestions &&
                   msg.followUpQuestions.length > 0 && (
                     <div className="pt-1 space-y-1.5 border-t border-slate-100">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">
                         {currentLanguage === 'hi'
                           ? 'आगे क्या पूछना चाहती हैं?'
                           : 'Suggested Follow-Up Questions:'}
@@ -1033,7 +1010,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                             key={qIdx}
                             type="button"
                             onClick={() => handleSendMessage(q)}
-                            className="text-left px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-700 text-[11px] font-medium border border-slate-200/80 transition"
+                            className="text-left px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-rose-50 hover:text-rose-700 text-slate-800 text-xs font-semibold border border-slate-200 transition"
                           >
                             {q}
                           </button>
@@ -1042,9 +1019,9 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                     </div>
                   )}
 
-                <div className="flex items-center justify-between gap-2 mt-1 pt-1 border-t border-slate-100/60">
+                <div className="flex items-center justify-between gap-2 mt-1 pt-1 border-t border-slate-100">
                   {msg.sender === 'saathi' && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
                       <Zap className="w-2.5 h-2.5 text-emerald-600" />
                       {msg.responseTimeMs
                         ? `${(msg.responseTimeMs / 1000).toFixed(1)}s instant reply`
@@ -1053,7 +1030,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                   )}
                   <span
                     className={`text-[10px] ml-auto ${
-                      msg.sender === 'user' ? 'text-rose-200' : 'text-slate-400'
+                      msg.sender === 'user' ? 'text-rose-100' : 'text-slate-400'
                     }`}
                   >
                     {msg.timestamp}
@@ -1071,10 +1048,10 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
 
           {isLoadingAi && (
             <div className="flex gap-2.5 items-center">
-              <div className="w-8 h-8 rounded-xl bg-rose-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <div className="w-8 h-8 rounded-xl btn-rose-primary text-white flex items-center justify-center shrink-0 shadow-xs">
                 <Bot className="w-4 h-4" />
               </div>
-              <div className="bg-white border border-slate-200/80 rounded-2xl px-4 py-3 text-xs text-slate-500 rounded-tl-none flex items-center gap-2 shadow-xs">
+              <div className="bg-white border border-slate-200 rounded-2xl px-4 py-3 text-xs text-slate-700 rounded-tl-none flex items-center gap-2 shadow-xs font-semibold">
                 <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
                 <span>
                   {currentLanguage === 'hi'
@@ -1091,24 +1068,15 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
         {/* Dynamic Category Suggested Prompts Bar */}
         <div className="p-2.5 sm:p-3 bg-white border-t border-slate-200">
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none text-xs">
-            <span className="text-[10px] font-bold text-slate-400 uppercase shrink-0">
+            <span className="text-[10px] font-bold text-slate-500 uppercase shrink-0">
               {currentCategoryData.label}:
             </span>
             {(categoryPrompts || []).map((prompt, idx) => (
               <button
                 key={idx}
                 type="button"
-                onClick={() => {
-                  if (
-                    prompt.toLowerCase().includes('3d') ||
-                    prompt.toLowerCase().includes('अंडाशय')
-                  ) {
-                    handleSendMessage(prompt);
-                  } else {
-                    handleSendMessage(prompt);
-                  }
-                }}
-                className="px-3 py-1.5 rounded-xl bg-rose-50/70 hover:bg-rose-100 text-rose-900 text-[11px] font-semibold whitespace-nowrap border border-rose-100 transition shadow-2xs"
+                onClick={() => handleSendMessage(prompt)}
+                className="px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-900 text-xs font-bold whitespace-nowrap border border-rose-200 transition shadow-2xs"
               >
                 {prompt}
               </button>
@@ -1117,7 +1085,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
         </div>
 
         {/* Chat Input & Voice Trigger Footer */}
-        <div className="p-3 sm:p-4 bg-white border-t border-slate-100 flex items-center gap-2">
+        <div className="p-3 sm:p-4 bg-white border-t border-slate-200 flex items-center gap-2">
           {/* Big Microphone Push-to-Talk / Toggle */}
           <button
             type="button"
@@ -1125,7 +1093,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
             onClick={isListening ? stopVoiceInput : startVoiceInput}
             className={`p-3.5 rounded-2xl transition shadow-md flex items-center justify-center shrink-0 ${
               isListening
-                ? 'bg-rose-600 text-white animate-pulse shadow-rose-300 ring-4 ring-rose-200'
+                ? 'btn-rose-primary text-white animate-pulse shadow-rose-300 ring-4 ring-rose-200'
                 : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
             }`}
             title="Tap to speak in your language"
@@ -1140,122 +1108,23 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
             onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
             placeholder={
               currentLanguage === 'hi'
-                ? 'पीसीओएस, लक्षण, डाइट या डॉक्टर के बारे में पूछें (यहाँ लिखें या माइक दबाएं)...'
-                : 'Ask about PCOS symptoms, inositol, diet, myths, or tests (type or tap mic)...'
+                ? 'माहवारी में देरी, दर्द, मुँहासे या डाइट के बारे में पूछें (यहाँ लिखें या माइक दबाएं)...'
+                : 'Ask about period delay, cramps, acne, inositol, or diet (type or tap mic)...'
             }
-            className="flex-1 px-4 py-3 rounded-2xl border border-slate-200 text-xs sm:text-sm focus:ring-2 focus:ring-rose-500 focus:outline-hidden shadow-inner"
+            className="flex-1 px-4 py-3 rounded-2xl border border-slate-300 bg-slate-50 text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:bg-white focus:ring-2 focus:ring-rose-300 focus:border-rose-500 focus:outline-none shadow-inner"
           />
 
           <button
             type="button"
-            id="btn-voice-send"
+            id="btn-send-voice-message"
             onClick={() => handleSendMessage()}
-            disabled={!inputText.trim() || isLoadingAi}
-            className="p-3.5 rounded-2xl bg-slate-900 hover:bg-slate-800 disabled:opacity-40 text-white transition shrink-0 shadow-md"
+            disabled={!inputText.trim()}
+            className="p-3.5 rounded-2xl btn-rose-primary text-white disabled:opacity-40 disabled:pointer-events-none transition shadow-md hover:scale-105"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-5 h-5" />
           </button>
         </div>
-
-        {/* Multi-Symptom Analyzer Overlay Drawer */}
-        {showSymptomDrawer && (
-          <div className="absolute inset-0 z-20 bg-slate-900/80 backdrop-blur-sm flex flex-col justify-end sm:justify-center p-3 sm:p-6 animate-in fade-in">
-            <div className="bg-white rounded-3xl p-5 sm:p-6 shadow-2xl border border-rose-100 max-h-[85%] flex flex-col">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center font-bold">
-                    <Search className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-slate-900">
-                      {currentLanguage === 'hi' ? 'मल्टी-लक्षण डायग्नोस्टिक चेकर' : 'Multi-Symptom Diagnostic Tool'}
-                    </h4>
-                    <p className="text-[11px] text-slate-500">
-                      {currentLanguage === 'hi'
-                        ? 'अपने सभी लक्षण चुनें और गूगल ग्राउंडेड मेडिकल विश्लेषण प्राप्त करें।'
-                        : 'Select multiple real symptoms to get root-cause correlation & clinical tests.'}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowSymptomDrawer(false)}
-                  className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-500"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Symptom Checkbox Matrix */}
-              <div className="py-4 overflow-y-auto max-h-64 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {COMMON_REAL_SYMPTOMS.map((sym) => {
-                  const isChecked = selectedSymptomsList.includes(sym.label);
-                  return (
-                    <button
-                      key={sym.id}
-                      type="button"
-                      onClick={() => toggleSymptomSelection(sym.label)}
-                      className={`p-3 rounded-2xl text-left border transition flex items-center justify-between gap-2 text-xs font-semibold ${
-                        isChecked
-                          ? 'bg-rose-50 border-rose-500 text-rose-950 shadow-xs'
-                          : 'bg-slate-50 hover:bg-slate-100/80 border-slate-200 text-slate-700'
-                      }`}
-                    >
-                      <div className="flex flex-col">
-                        <span>{currentLanguage === 'hi' ? sym.hi : sym.label}</span>
-                        <span className="text-[10px] text-slate-400 font-normal">
-                          {currentLanguage === 'hi' ? 'वास्तविक लक्षण' : 'Real Symptom Factor'}
-                        </span>
-                      </div>
-                      <div
-                        className={`w-5 h-5 rounded-lg border flex items-center justify-center ${
-                          isChecked ? 'bg-rose-600 border-rose-600 text-white' : 'border-slate-300 bg-white'
-                        }`}
-                      >
-                        {isChecked && <CheckCircle2 className="w-3.5 h-3.5" />}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
-                <span className="text-xs text-slate-500">
-                  {selectedSymptomsList.length}{' '}
-                  {currentLanguage === 'hi' ? 'लक्षण चुने गए' : 'symptoms selected'}
-                </span>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSelectedSymptomsList([])}
-                    className="px-3 py-2 rounded-xl text-xs font-medium text-slate-600 hover:bg-slate-100"
-                  >
-                    {currentLanguage === 'hi' ? 'रीसेट' : 'Clear'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleRunMultiSymptomAnalysis}
-                    disabled={selectedSymptomsList.length === 0 || isAnalyzingSymptoms}
-                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-700 hover:to-rose-800 disabled:opacity-50 text-white text-xs font-bold shadow-md flex items-center gap-1.5 transition"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" />
-                    <span>
-                      {isAnalyzingSymptoms
-                        ? currentLanguage === 'hi'
-                          ? 'विश्लेषण हो रहा है...'
-                          : 'Analyzing...'
-                        : currentLanguage === 'hi'
-                        ? 'एआई विश्लेषण शुरू करें'
-                        : 'Run Medical Analysis'}
-                    </span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
 };
-
