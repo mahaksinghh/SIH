@@ -1,7 +1,7 @@
 import express from 'express';
 import path from 'path';
 import dotenv from 'dotenv';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, ThinkingLevel, Type } from '@google/genai';
 import { createServer as createViteServer } from 'vite';
 
 dotenv.config();
@@ -32,7 +32,7 @@ function getAiClient(): GoogleGenAI | null {
   return aiClient;
 }
 
-// Resilient API Caller using stable gemini-2.5 models and search grounding
+// Resilient API Caller using supported Gemini 3 series models with low-latency voice acceleration
 interface AiGenerationResult {
   text: string | null;
   sources?: Array<{ title: string; uri: string }>;
@@ -41,14 +41,18 @@ interface AiGenerationResult {
 async function generateWithResilience(
   ai: GoogleGenAI,
   prompt: string,
-  primaryModel = 'gemini-2.5-flash',
+  primaryModel = 'gemini-flash-latest',
   isJson = false,
-  enableSearch = false
+  enableSearch = false,
+  fastLatency = true
 ): Promise<AiGenerationResult> {
-  // Cascading stable model list
-  const modelsToTry = [primaryModel, 'gemini-2.5-flash-lite', 'gemini-2.5-flash', 'gemini-2.5-pro'].filter(
-    (model, idx, self) => self.indexOf(model) === idx
-  );
+  // Cascading fast-first supported model list
+  const modelsToTry = [
+    primaryModel,
+    'gemini-flash-latest',
+    'gemini-3.7-flash',
+    'gemini-3.1-flash-lite',
+  ].filter((model, idx, self) => self.indexOf(model) === idx);
 
   for (const model of modelsToTry) {
     try {
@@ -59,12 +63,25 @@ async function generateWithResilience(
       if (enableSearch && !isJson) {
         configObj.tools = [{ googleSearch: {} }];
       }
+      if (fastLatency) {
+        // Minimize reasoning latency for real-time voice and conversational queries
+        if (model.includes('3.7') || model.includes('3.5')) {
+          configObj.thinkingConfig = { thinkingLevel: ThinkingLevel.LOW };
+        }
+      }
 
-      const response = await ai.models.generateContent({
+      // Fast race with timeout to ensure Voice Saathi never hangs
+      const generatePromise = ai.models.generateContent({
         model,
         contents: prompt,
         config: Object.keys(configObj).length > 0 ? configObj : undefined,
       });
+
+      const timeoutPromise = new Promise<null>((_, reject) =>
+        setTimeout(() => reject(new Error(`Timeout on model ${model}`)), fastLatency ? 4500 : 9000)
+      );
+
+      const response = (await Promise.race([generatePromise, timeoutPromise])) as any;
 
       if (response && response.text) {
         const chunks = (response.candidates?.[0] as any)?.groundingMetadata?.groundingChunks;
@@ -81,20 +98,9 @@ async function generateWithResilience(
         };
       }
     } catch (err: any) {
-      // If 503/429 temporary demand or unavailable, quietly try next model
-      const isDemandError =
-        err?.status === 'UNAVAILABLE' ||
-        err?.code === 503 ||
-        err?.status === 503 ||
-        err?.status === 429 ||
-        err?.message?.includes('high demand') ||
-        err?.message?.includes('503');
-
-      if (!isDemandError) {
-        console.warn(`Model ${model} issue:`, err?.message || err);
-      }
+      console.warn(`Model ${model} quick fallback triggered:`, err?.message || err);
       // Brief pause before trying next fallback model
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 50));
     }
   }
 
@@ -818,77 +824,38 @@ app.post('/api/gemini/voice-saathi', async (req, res) => {
       });
     }
 
-    const systemPrompt = `You are "Voice Saathi", an advanced AI clinical educator and compassionate women's health & PCOS specialist on StreeSure in India.
-Your mission is to understand REAL symptoms, physical complaints, hormonal irregularities, metabolic issues, emotional struggles, and biological questions described by users in any Indian language or English, and provide medically accurate, empathetic, and evidence-grounded responses.
+    const systemPrompt = `You are "Voice Saathi", a compassionate, intelligent, and warm AI healthcare companion and women's health educator on StreeSure in India.
+You TALK directly to the user about THEIR specific physical problem, symptoms, menstrual delays, pelvic pain, acne, hair loss, weight, or anxiety in a conversational, sisterly ("Didi/Saathi"), and medically reassuring voice in ${language}.
 
-COMPREHENSIVE SYMPTOM & CLINICAL TOPIC REPERTOIRE:
-1. Menstrual & Ovulatory Patterns:
-   - Delayed / late periods (>35 days, oligomenorrhea) or missed for months (amenorrhea).
-   - Heavy bleeding with clots (menorrhagia) due to anovulatory cycles and prolonged estrogen exposure without progesterone balance.
-   - Severe menstrual cramps (dysmenorrhea) and pelvic fullness.
-   - Anovulation (eggs paused in immature antral follicle stage - Rotterdam 2023 criteria).
-
-2. Hyperandrogenism & Physical Manifestations:
-   - Facial & body hair (hirsutism on chin, upper lip, chest, abdomen) due to high free testosterone and DHT via 5-alpha reductase.
-   - Persistent hormonal cystic acne along the jawline and chin.
-   - Scalp hair thinning and crown shedding (androgenetic alopecia).
-
-3. Metabolic & Insulin Resistance Spectrum:
-   - Acanthosis Nigricans: Dark, velvety hyperpigmentation patches around neck creases, underarms, knuckles, and groin caused by high fasting insulin stimulating epidermal IGF-1 receptors.
-   - Stubborn abdominal / visceral weight gain and intense sugar / carb cravings with post-meal energy crashes (reactive hypoglycemia).
-   - Fatigue, brain fog, and sluggish metabolism.
-
-4. Fertility, Family Planning & Pregnancy:
-   - Ovulatory subfertility vs permanent sterility: PCOS means irregular ovulation, NOT permanent infertility; 80%+ of women conceive with lifestyle, Myo-Inositol, or mild ovulation induction (Letrozole/Clomiphene).
-   - High AMH (Anti-Müllerian Hormone) and egg reserve preservation.
-
-5. Phenotypes & Overlapping Conditions:
-   - Lean PCOS (20-30% with normal BMI, driven by adrenal DHEA-S, high cortisol, or cellular insulin resistance).
-   - Hypothyroidism vs PCOS overlap (TSH & Prolactin testing importance).
-   - Endometriosis vs PCOS differences (pain-driven vs ovulatory-driven).
-
-6. Evidence-Based Interventions & Diet:
-   - Myo-Inositol + D-Chiro-Inositol in physiological 40:1 ratio (2000mg-4000mg/day) to restore cellular insulin signaling and regular ovulation.
-   - Spearmint tea (2 cups/day) to reduce free testosterone.
-   - Methi (fenugreek) water & Cinnamon for glucose metabolism.
-   - Low-cortisol workouts: Progressive strength training (GLUT4 activation without insulin) + Zone 2 walking + Pelvic Yoga (Supta Baddha Konasana, Malasana).
-   - Avoid chronic HIIT burnout workouts that spike cortisol.
-
-7. StreeSure Platform Navigation:
-   - Affordable private teleconsultations with female gynecologists for ₹199.
-   - Free grassroots ASHA didi community support & PHC health camps.
-   - Interactive 3D Ovarian Anatomy explorer.
-   - Daily Progress Tracker for sleep, water, stress, and symptom severity.
-   - Guided Exercise & Yoga Portal and Certified Care Store.
-
-CRITICAL MEDICAL ETHICS & SAFETY:
-- Explicitly reassure the user with calm, dignified language.
-- Clarify that AI provides health education and symptom patterns, not a final clinical prescription.
-- For emergency symptoms (sudden acute pelvic pain, heavy bleeding causing dizziness), urge immediate in-person emergency care.
-- Respond fluently in the requested language: "${language}".
+CONVERSATIONAL RULES:
+1. Speak directly in the first person ("नमस्ते, मैं समझ सकती हूँ कि...", "Hello, I hear your concern about..."). Acknowledge their exact complaint with deep empathy.
+2. Directly explain the biological reason for their specific problem in simple, comforting words without overwhelming jargon.
+3. Give 2-3 instant, realistic steps they can take today (nutrition, water, gentle pelvic yoga, Myo-Inositol, spearmint tea).
+4. End the spoken reply with a caring conversational question to help understand their symptoms better.
+5. Keep the "reply" concise, natural to be spoken aloud by TTS (2-4 clear sentences).
 
 RESPONSE FORMAT:
 You MUST respond with a JSON object matching this schema:
 {
-  "reply": "Empathetic, clear, conversational spoken explanation in ${language} addressing the specific symptoms or question directly (3-5 sentences).",
+  "reply": "Warm, conversational spoken reply in ${language} addressing the user's specific problem directly (2-4 sentences).",
   "keyTakeaways": [
-    "Biological reason or symptom root cause in ${language}",
-    "Actionable lifestyle, dietary, or self-care recommendation in ${language}",
-    "Guidance on tests or doctor consultation in ${language}"
+    "Root cause of their symptom in ${language}",
+    "Actionable self-care or diet step in ${language}",
+    "Doctor or test recommendation in ${language}"
   ],
   "followUpQuestions": [
-    "Suggested question 1 in ${language}",
-    "Suggested question 2 in ${language}",
-    "Suggested question 3 in ${language}"
+    "Caring follow-up question 1 in ${language}",
+    "Caring follow-up question 2 in ${language}",
+    "Caring follow-up question 3 in ${language}"
   ],
   "actionIntent": "screening" | "doctors" | "3d" | "tracker" | "knowledge" | "store" | "community" | "progress_tracker" | "exercise_portal" | "home_remedies" | "none",
   "actionLabel": "Short button label in ${language}"
 }
 
-User Question/Symptoms: "${message}"
-Context: ${JSON.stringify(context)}`;
+User's exact problem / voice message: "${message}"
+User context: ${JSON.stringify(context)}`;
 
-    const aiResult = await generateWithResilience(ai, systemPrompt, 'gemini-2.5-flash', true, false);
+    const aiResult = await generateWithResilience(ai, systemPrompt, 'gemini-flash-latest', true, false, true);
 
     if (aiResult && aiResult.text) {
       try {
@@ -994,7 +961,7 @@ Format your response as valid JSON:
   "suggestedConsultation": "Why discussing these with a ₹199 gynecologist on StreeSure is beneficial in ${language}"
 }`;
 
-    const aiRes = await generateWithResilience(ai, prompt, 'gemini-2.5-flash', true, false);
+    const aiRes = await generateWithResilience(ai, prompt, 'gemini-flash-latest', true, false, true);
 
     if (aiRes && aiRes.text) {
       try {

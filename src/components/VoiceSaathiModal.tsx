@@ -30,10 +30,11 @@ import {
   ShieldCheck,
   Search,
   AlertCircle,
+  Zap,
 } from 'lucide-react';
 import { LanguageCode, User } from '../types';
 import { SUPPORTED_LANGUAGES, getTranslation } from '../services/translations';
-import { speakText, stopSpeaking } from '../services/voiceService';
+import { speakText, stopSpeaking, prewarmVoices, unlockAudio, playChime } from '../services/voiceService';
 
 interface VoiceSaathiModalProps {
   isOpen: boolean;
@@ -56,6 +57,7 @@ interface Message {
   timestamp: string;
   googleGrounded?: boolean;
   sources?: Array<{ title: string; uri: string }>;
+  responseTimeMs?: number;
 }
 
 type TopicCategory = 'symptoms' | 'myths' | 'nutrition' | 'exercise' | 'remedies' | 'tracker' | 'tests' | 'doctor';
@@ -82,32 +84,35 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
   onNavigateTab,
   onOpen3DModal,
 }) => {
+  const [autoVoiceEnabled, setAutoVoiceEnabled] = useState(true);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'msg_welcome',
       sender: 'saathi',
       text:
         currentLanguage === 'hi'
-          ? 'नमस्ते! मैं स्त्रीश्योर वॉयस साथी हूँ। मैं पीसीओएस, माहवारी स्वास्थ्य, हार्मोनल कारणों, डाइट, 3D मॉडल और डॉक्टर परामर्श पर वैज्ञानिक व सहज जानकारी देती हूँ। आप मुझसे कुछ भी पूछ सकती हैं।'
-          : "Hello! I am StreeSure Voice Saathi. I am equipped with comprehensive clinical knowledge on PCOS root causes, symptoms, myths vs facts, inositol nutrition, 3D anatomy, and care navigation. How can I help you today?",
+          ? 'नमस्ते! मैं आपकी वॉयस साथी (Voice Saathi) हूँ। आप मुझसे अपनी माहवारी में देरी, पेट दर्द, चेहरे पर अनचाहे बाल, मुँहासे, वजन या किसी भी लक्षण के बारे में बोलकर या लिखकर बात कर सकती हैं। आपको अभी क्या परेशानी महसूस हो रही है?'
+          : "Hello! I am your Voice Saathi. You can speak or write to me about delayed periods, severe cramps, facial hair, cystic acne, stubborn weight, or any physical symptoms. What problem are you facing right now?",
       keyTakeaways: [
         currentLanguage === 'hi'
-          ? 'वैज्ञानिक और सुरक्षित: रॉटरडैम गाइडलाइंस और पोषण विज्ञान पर आधारित।'
-          : 'Evidence-Based & Safe: Grounded in Rotterdam 2023 guidelines and nutrition science.',
+          ? 'बातचीत के माध्यम से समाधान: आपकी समस्या को सुनकर तुरंत वैज्ञानिक व आसान सुझाव।'
+          : 'Interactive Voice Companion: Instant evidence-based answers to your personal symptoms.',
         currentLanguage === 'hi'
-          ? 'गोपनीय और संवेदनशील: बिना किसी संकोच के अपनी भाषा में पूछें।'
-          : 'Private & Empathetic: Ask any sensitive cycle question in your mother tongue.',
+          ? '100% गोपनीय व सुरक्षित: बिना किसी संकोच के अपनी मातृभाषा में साझा करें।'
+          : '100% Private & Empathetic: Ask any sensitive cycle or health question in your own language.',
       ],
       followUpQuestions:
         currentLanguage === 'hi'
           ? [
-              'माहवारी 2 महीने से लेट क्यों होती है?',
-              'पीसीओएस के मुख्य लक्षण और कारण क्या हैं?',
+              'माहवारी 40 दिन से ज्यादा लेट क्यों हो रही है?',
+              'पेट में बहुत तेज दर्द और ऐंठन के लिए क्या करें?',
+              'चेहरे और ठोड़ी पर अनचाहे बाल कैसे कम होंगे?',
               'क्या दुबली महिलाओं को भी पीसीओएस हो सकता है?',
             ]
           : [
-              'Why is my period delayed by 45 days?',
-              'What are the 4 main types of PCOS?',
+              'Why is my period delayed by 40+ days?',
+              'What should I do for severe period cramps and pain?',
+              'How to naturally reduce facial and chin hair?',
               'Can lean or thin women have PCOS?',
             ],
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -116,6 +121,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
 
   const [activeCategory, setActiveCategory] = useState<TopicCategory>('symptoms');
   const [inputText, setInputText] = useState('');
+  const [liveTranscript, setLiveTranscript] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [currentlySpeakingId, setCurrentlySpeakingId] = useState<string | null>(null);
   const [isLoadingAi, setIsLoadingAi] = useState(false);
@@ -123,7 +129,15 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
   const [selectedSymptomsList, setSelectedSymptomsList] = useState<string[]>([]);
   const [isAnalyzingSymptoms, setIsAnalyzingSymptoms] = useState(false);
   const recognitionRef = useRef<any>(null);
+  const silenceTimerRef = useRef<any>(null);
+  const latestTranscriptRef = useRef<string>('');
   const chatBottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      prewarmVoices();
+    }
+  }, [isOpen]);
 
   const toggleSymptomSelection = (symptomLabel: string) => {
     setSelectedSymptomsList((prev) =>
@@ -149,7 +163,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
 
   useEffect(() => {
     chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isLoadingAi]);
+  }, [messages, isLoadingAi, liveTranscript]);
 
   if (!isOpen) return null;
 
@@ -324,17 +338,16 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
     const text = userTextToSend || inputText;
     if (!text.trim()) return;
 
-    // Check if the user is asking to open 3D model directly
-    const lowerText = text.toLowerCase();
-    if (
-      lowerText.includes('3d') ||
-      lowerText.includes('three d') ||
-      lowerText.includes('मॉडल') ||
-      lowerText.includes('3डी')
-    ) {
-      // Still send message to get smart description, but also offer 3d modal trigger
-    }
+    unlockAudio();
 
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
+    setLiveTranscript('');
+    latestTranscriptRef.current = '';
+
+    const startTime = Date.now();
     const userMsg: Message = {
       id: 'usr_' + Date.now(),
       sender: 'user',
@@ -361,10 +374,11 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
       });
 
       const data = await res.json();
+      const elapsedMs = Date.now() - startTime;
       const reply =
         data.reply ||
         (currentLanguage === 'hi'
-          ? 'माहवारी में देरी और हार्मोनल बदलावों को संतुलित पोषण और डॉक्टर की सलाह से प्रबंधित किया जा सकता है।'
+          ? 'माहवारी में देरी और हार्मोनल बदलावों को संतुलित पोषण, इनोसिटोल और डॉक्टर की सलाह से ठीक किया जा सकता है।'
           : 'Cycle variations can be managed through balanced nutrition, inositol, and specialized gynecological care.');
 
       const saathiMsg: Message = {
@@ -377,18 +391,23 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
         actionLabel: data.actionLabel || '',
         googleGrounded: data.googleGrounded ?? true,
         sources: data.sources || [],
+        responseTimeMs: elapsedMs,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
 
       setMessages((prev) => [...prev, saathiMsg]);
 
-      // Automatically speak the response
-      setCurrentlySpeakingId(saathiMsg.id);
-      speakText(reply, currentLanguage, () => {
-        setCurrentlySpeakingId(null);
-      });
+      // Play soft chime and immediately talk to user
+      if (autoVoiceEnabled) {
+        playChime('reply');
+        setCurrentlySpeakingId(saathiMsg.id);
+        speakText(reply, currentLanguage, () => {
+          setCurrentlySpeakingId(null);
+        });
+      }
     } catch (e) {
       console.error('Error fetching Voice Saathi response:', e);
+      const elapsedMs = Date.now() - startTime;
       const fallbackMsg: Message = {
         id: 'saathi_' + Date.now(),
         sender: 'saathi',
@@ -410,15 +429,24 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
             : ['How does Myo-Inositol work?', 'How to consult a doctor on StreeSure?'],
         googleGrounded: false,
         sources: [],
+        responseTimeMs: elapsedMs,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, fallbackMsg]);
+      if (autoVoiceEnabled) {
+        playChime('reply');
+        setCurrentlySpeakingId(fallbackMsg.id);
+        speakText(fallbackMsg.text, currentLanguage, () => {
+          setCurrentlySpeakingId(null);
+        });
+      }
     } finally {
       setIsLoadingAi(false);
     }
   };
 
   const handleToggleSpeakMessage = (msg: Message) => {
+    unlockAudio();
     if (currentlySpeakingId === msg.id) {
       stopSpeaking();
       setCurrentlySpeakingId(null);
@@ -432,66 +460,123 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
   };
 
   const startVoiceInput = () => {
+    unlockAudio();
+    playChime('start');
+    setLiveTranscript('');
+    latestTranscriptRef.current = '';
+
     if (
       typeof window !== 'undefined' &&
       ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)
     ) {
-      const SpeechRecognition =
-        (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.lang =
-        currentLanguage === 'hi'
-          ? 'hi-IN'
-          : currentLanguage === 'bn'
-          ? 'bn-IN'
-          : currentLanguage === 'mr'
-          ? 'mr-IN'
-          : currentLanguage === 'ta'
-          ? 'ta-IN'
-          : currentLanguage === 'te'
-          ? 'te-IN'
-          : 'en-IN';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      recognition.onstart = () => {
-        setIsListening(true);
-      };
-
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setIsListening(false);
-        handleSendMessage(transcript);
-      };
-
-      recognition.onerror = () => {
-        setIsListening(false);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognitionRef.current = recognition;
-      recognition.start();
-    } else {
-      setIsListening(true);
-      setTimeout(() => {
-        setIsListening(false);
-        const sampleSpoken =
+      try {
+        const SpeechRecognition =
+          (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang =
           currentLanguage === 'hi'
-            ? 'माहवारी 35 दिनों से अधिक लेट क्यों होती है?'
-            : 'Why does PCOS cause cycles delayed beyond 35 days?';
-        handleSendMessage(sampleSpoken);
-      }, 1500);
+            ? 'hi-IN'
+            : currentLanguage === 'bn'
+            ? 'bn-IN'
+            : currentLanguage === 'mr'
+            ? 'mr-IN'
+            : currentLanguage === 'ta'
+            ? 'ta-IN'
+            : currentLanguage === 'te'
+            ? 'te-IN'
+            : 'en-IN';
+        recognition.continuous = true;
+        recognition.interimResults = true;
+
+        recognition.onstart = () => {
+          setIsListening(true);
+        };
+
+        recognition.onresult = (event: any) => {
+          let interimTranscript = '';
+          let finalTranscript = '';
+
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript;
+            } else {
+              interimTranscript += event.results[i][0].transcript;
+            }
+          }
+
+          const currentText = (finalTranscript || interimTranscript).trim();
+          if (currentText) {
+            setLiveTranscript(currentText);
+            latestTranscriptRef.current = currentText;
+
+            // Reset silence timer on every spoken word
+            if (silenceTimerRef.current) {
+              clearTimeout(silenceTimerRef.current);
+            }
+
+            // Quick auto-submit after 1.2s silence
+            silenceTimerRef.current = setTimeout(() => {
+              if (recognitionRef.current) {
+                try {
+                  recognitionRef.current.stop();
+                } catch (_) {}
+              }
+              setIsListening(false);
+              if (latestTranscriptRef.current) {
+                handleSendMessage(latestTranscriptRef.current);
+              }
+            }, 1200);
+          }
+        };
+
+        recognition.onerror = (e: any) => {
+          console.warn('Speech recognition notice:', e?.error);
+          setIsListening(false);
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+        recognition.start();
+      } catch (err) {
+        console.warn('Speech recognition init error:', err);
+        fallbackVoicePrompt();
+      }
+    } else {
+      fallbackVoicePrompt();
     }
   };
 
+  const fallbackVoicePrompt = () => {
+    setIsListening(true);
+    const sampleSpoken =
+      currentLanguage === 'hi'
+        ? 'माहवारी 35 दिनों से अधिक लेट क्यों होती है?'
+        : 'Why does PCOS cause cycles delayed beyond 35 days?';
+    setLiveTranscript(sampleSpoken);
+    setTimeout(() => {
+      setIsListening(false);
+      handleSendMessage(sampleSpoken);
+    }, 400);
+  };
+
   const stopVoiceInput = () => {
+    if (silenceTimerRef.current) {
+      clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
+    }
     if (recognitionRef.current) {
-      recognitionRef.current.stop();
+      try {
+        recognitionRef.current.stop();
+      } catch (_) {}
     }
     setIsListening(false);
+    const textToSend = latestTranscriptRef.current || liveTranscript;
+    if (textToSend.trim()) {
+      handleSendMessage(textToSend.trim());
+    }
   };
 
   const handleActionClick = (action: string) => {
@@ -572,6 +657,42 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Auto-Voice Speak Toggle */}
+            <button
+              type="button"
+              onClick={() => {
+                unlockAudio();
+                const nextState = !autoVoiceEnabled;
+                setAutoVoiceEnabled(nextState);
+                if (!nextState) {
+                  stopSpeaking();
+                  setCurrentlySpeakingId(null);
+                }
+              }}
+              className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs ${
+                autoVoiceEnabled
+                  ? 'bg-emerald-500 hover:bg-emerald-400 text-white'
+                  : 'bg-white/20 hover:bg-white/30 text-white/90'
+              }`}
+              title="Toggle automatic spoken replies"
+            >
+              {autoVoiceEnabled ? (
+                <>
+                  <Volume2 className="w-3.5 h-3.5 animate-pulse" />
+                  <span className="hidden sm:inline">
+                    {currentLanguage === 'hi' ? 'बोलकर जवाब (चालू)' : 'Voice Talking (ON)'}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <VolumeX className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">
+                    {currentLanguage === 'hi' ? 'म्यूट' : 'Muted'}
+                  </span>
+                </>
+              )}
+            </button>
+
             {/* Multi-Symptom Diagnostic Button */}
             <button
               type="button"
@@ -673,44 +794,68 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
         </div>
 
         {/* Audio Visualizer & Waveform Animation Bar */}
-        {(isListening || currentlySpeakingId || isLoadingAi) && (
-          <div className="bg-rose-50 border-b border-rose-100 py-2 px-4 flex items-center justify-between text-xs font-bold text-rose-800 animate-in fade-in">
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-0.5 h-4">
+        {(isListening || liveTranscript || currentlySpeakingId || isLoadingAi) && (
+          <div className="bg-rose-50/90 border-b border-rose-200/80 py-2.5 px-4 flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-rose-800 animate-in fade-in">
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
+              <div className="flex items-center gap-0.5 h-4 shrink-0">
                 <span className="w-1 bg-rose-600 rounded-full animate-[bounce_0.6s_infinite_100ms] h-3" />
                 <span className="w-1 bg-rose-600 rounded-full animate-[bounce_0.6s_infinite_200ms] h-4" />
                 <span className="w-1 bg-rose-600 rounded-full animate-[bounce_0.6s_infinite_300ms] h-2" />
                 <span className="w-1 bg-rose-600 rounded-full animate-[bounce_0.6s_infinite_400ms] h-5" />
                 <span className="w-1 bg-rose-600 rounded-full animate-[bounce_0.6s_infinite_150ms] h-3" />
               </div>
-              <span>
-                {isListening
-                  ? currentLanguage === 'hi'
-                    ? 'आपकी आवाज़ सुनी जा रही है...'
-                    : 'Listening in your mother tongue...'
-                  : isLoadingAi
-                  ? currentLanguage === 'hi'
-                    ? 'वॉयस साथी उत्तर तैयार कर रही है...'
-                    : 'Voice Saathi is preparing response...'
-                  : currentLanguage === 'hi'
-                  ? 'उत्तर बोला जा रहा है...'
-                  : 'Speaking answer aloud...'}
-              </span>
+              <div className="flex-1 min-w-0">
+                {liveTranscript ? (
+                  <p className="text-xs font-medium text-slate-800 truncate">
+                    <span className="text-rose-600 font-bold mr-1">
+                      {currentLanguage === 'hi' ? 'सुना जा रहा है:' : 'Hearing:'}
+                    </span>
+                    &ldquo;{liveTranscript}&rdquo;
+                  </p>
+                ) : (
+                  <span className="text-xs font-semibold text-rose-900">
+                    {isListening
+                      ? currentLanguage === 'hi'
+                        ? 'आपकी आवाज़ सुनी जा रही है (बोलना बंद करते ही तुरंत उत्तर मिलेगा)...'
+                        : 'Listening to your voice (auto-replies with ultra-low latency)...'
+                      : isLoadingAi
+                      ? currentLanguage === 'hi'
+                        ? '⚡ वॉयस साथी तुरंत उत्तर तैयार कर रही है...'
+                        : '⚡ Voice Saathi is generating instant response...'
+                      : currentLanguage === 'hi'
+                      ? 'उत्तर बोला जा रहा है...'
+                      : 'Speaking answer aloud...'}
+                  </span>
+                )}
+              </div>
             </div>
 
-            {currentlySpeakingId && (
-              <button
-                type="button"
-                onClick={() => {
-                  stopSpeaking();
-                  setCurrentlySpeakingId(null);
-                }}
-                className="text-slate-600 hover:text-rose-600 flex items-center gap-1 font-semibold text-[11px] bg-white px-2 py-0.5 rounded-lg border border-rose-200 shadow-2xs"
-              >
-                <VolumeX className="w-3.5 h-3.5 text-rose-600" />
-                <span>Mute Voice</span>
-              </button>
-            )}
+            <div className="flex items-center gap-2 shrink-0">
+              {isListening && (
+                <button
+                  type="button"
+                  onClick={stopVoiceInput}
+                  className="bg-rose-600 hover:bg-rose-700 text-white flex items-center gap-1.5 font-bold text-[11px] px-3 py-1 rounded-xl shadow-xs transition"
+                >
+                  <Zap className="w-3 h-3" />
+                  <span>{currentLanguage === 'hi' ? 'उत्तर पाएं' : 'Send Voice Note'}</span>
+                </button>
+              )}
+
+              {currentlySpeakingId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    stopSpeaking();
+                    setCurrentlySpeakingId(null);
+                  }}
+                  className="text-slate-600 hover:text-rose-600 flex items-center gap-1 font-semibold text-[11px] bg-white px-2 py-0.5 rounded-lg border border-rose-200 shadow-2xs"
+                >
+                  <VolumeX className="w-3.5 h-3.5 text-rose-600" />
+                  <span>Mute</span>
+                </button>
+              )}
+            </div>
           </div>
         )}
 
@@ -735,25 +880,38 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                 }`}
               >
                 {/* Main text message */}
-                <div className="flex items-start justify-between gap-2">
-                  <p className="whitespace-pre-line">{msg.text}</p>
+                <div className="space-y-2">
+                  <p className="whitespace-pre-line text-slate-800 font-normal leading-relaxed">{msg.text}</p>
+                  
                   {msg.sender === 'saathi' && (
-                    <button
-                      type="button"
-                      onClick={() => handleToggleSpeakMessage(msg)}
-                      title={currentlySpeakingId === msg.id ? 'Stop Voice' : 'Read Aloud'}
-                      className={`p-1.5 rounded-lg transition shrink-0 ${
-                        currentlySpeakingId === msg.id
-                          ? 'bg-rose-100 text-rose-700'
-                          : 'text-slate-400 hover:text-rose-600 hover:bg-slate-100'
-                      }`}
-                    >
-                      {currentlySpeakingId === msg.id ? (
-                        <VolumeX className="w-4 h-4" />
-                      ) : (
-                        <Volume2 className="w-4 h-4" />
-                      )}
-                    </button>
+                    <div className="flex items-center gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleSpeakMessage(msg)}
+                        className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition shadow-2xs ${
+                          currentlySpeakingId === msg.id
+                            ? 'bg-rose-600 text-white shadow-rose-200 ring-2 ring-rose-300'
+                            : 'bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200'
+                        }`}
+                      >
+                        {currentlySpeakingId === msg.id ? (
+                          <>
+                            <VolumeX className="w-3.5 h-3.5" />
+                            <span>{currentLanguage === 'hi' ? 'आवाज़ रोकें' : 'Stop Speaking'}</span>
+                            <span className="flex gap-0.5 ml-1">
+                              <span className="w-1 h-3 bg-white rounded-full animate-[bounce_0.5s_infinite_100ms]" />
+                              <span className="w-1 h-3 bg-white rounded-full animate-[bounce_0.5s_infinite_200ms]" />
+                              <span className="w-1 h-3 bg-white rounded-full animate-[bounce_0.5s_infinite_300ms]" />
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="w-3.5 h-3.5 text-rose-600" />
+                            <span>{currentLanguage === 'hi' ? '🔊 बोलकर सुनो (Listen)' : '🔊 Listen Aloud'}</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   )}
                 </div>
 
@@ -884,13 +1042,23 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
                     </div>
                   )}
 
-                <span
-                  className={`block text-[10px] mt-1 text-right ${
-                    msg.sender === 'user' ? 'text-rose-200' : 'text-slate-400'
-                  }`}
-                >
-                  {msg.timestamp}
-                </span>
+                <div className="flex items-center justify-between gap-2 mt-1 pt-1 border-t border-slate-100/60">
+                  {msg.sender === 'saathi' && (
+                    <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-200">
+                      <Zap className="w-2.5 h-2.5 text-emerald-600" />
+                      {msg.responseTimeMs
+                        ? `${(msg.responseTimeMs / 1000).toFixed(1)}s instant reply`
+                        : 'Instant Voice Response'}
+                    </span>
+                  )}
+                  <span
+                    className={`text-[10px] ml-auto ${
+                      msg.sender === 'user' ? 'text-rose-200' : 'text-slate-400'
+                    }`}
+                  >
+                    {msg.timestamp}
+                  </span>
+                </div>
               </div>
 
               {msg.sender === 'user' && (

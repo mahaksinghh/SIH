@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Navbar } from './components/Navbar';
+import { SideMenuDrawer } from './components/SideMenuDrawer';
 import { DemoTourBar } from './components/DemoTourBar';
 import { LandingPage } from './components/LandingPage';
 import { ScreeningView } from './components/ScreeningView';
@@ -58,6 +59,7 @@ export default function App() {
   const [currentScreeningResult, setCurrentScreeningResult] = useState<ScreeningResult | null>(null);
 
   // Modals & Auth State
+  const [isSideMenuOpen, setIsSideMenuOpen] = useState(false);
   const [isVoiceSaathiOpen, setIsVoiceSaathiOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState<boolean>(() => {
     try {
@@ -173,7 +175,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0D0914] blossom-mesh-bg flex flex-col font-sans text-slate-100 selection:bg-rose-500 selection:text-white">
+    <div className="min-h-screen bg-[#FFF5F8] health-watermark-bg flex flex-col font-sans text-slate-900 selection:bg-rose-500 selection:text-white">
       {/* 1. Quick Presentation / Evaluator Bar */}
       <DemoTourBar
         currentUser={currentUser}
@@ -198,11 +200,31 @@ export default function App() {
         currentLanguage={currentLanguage}
         setCurrentLanguage={setCurrentLanguage}
         onOpenVoiceSaathi={() => setIsVoiceSaathiOpen(true)}
+        onOpenSideMenu={() => setIsSideMenuOpen(true)}
         onOpenAuth={handleOpenAuth}
         onLogout={handleLogout}
         cartCount={cart.reduce((sum, i) => sum + i.quantity, 0)}
         onOpenCart={() => setActiveTab('store')}
         onOpen3DModal={() => setIs3DModalOpen(true)}
+      />
+
+      {/* Side Navigation Drawer */}
+      <SideMenuDrawer
+        isOpen={isSideMenuOpen}
+        onClose={() => setIsSideMenuOpen(false)}
+        currentUser={currentUser}
+        activeTab={activeTab}
+        onNavigateTab={(tab) => {
+          setActiveTab(tab);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenVoiceSaathi={() => setIsVoiceSaathiOpen(true)}
+        onOpen3DModal={() => setIs3DModalOpen(true)}
+        onOpenAuth={handleOpenAuth}
+        onLogout={handleLogout}
+        currentLanguage={currentLanguage}
+        onSwitchLanguage={setCurrentLanguage}
+        onSwitchUser={handleSwitchUser}
       />
 
       {/* 3. Main Views Container */}

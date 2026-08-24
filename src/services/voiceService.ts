@@ -131,42 +131,189 @@ export function parseVoiceScreeningAnswer(
   return { updatedAnswers: res, recognizedText, confidenceText };
 }
 
-// Multi-Language Speech Synthesis (TTS) Helper
+// Multi-Language Speech Synthesis (TTS) & Audio Engine
+let cachedVoices: SpeechSynthesisVoice[] = [];
+let activeUtterances: SpeechSynthesisUtterance[] = [];
+let audioContextInstance: AudioContext | null = null;
+
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  const loadVoices = () => {
+    cachedVoices = window.speechSynthesis.getVoices();
+  };
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+// Unlock audio context and speech engine on user gesture
+export function unlockAudio() {
+  if (typeof window === 'undefined') return;
+
+  try {
+    if (!audioContextInstance && (window.AudioContext || (window as any).webkitAudioContext)) {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      audioContextInstance = new AudioCtx();
+    }
+    if (audioContextInstance && audioContextInstance.state === 'suspended') {
+      audioContextInstance.resume();
+    }
+  } catch (e) {
+    console.warn('AudioContext resume notice:', e);
+  }
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.resume();
+    if (cachedVoices.length === 0) {
+      cachedVoices = window.speechSynthesis.getVoices();
+    }
+  }
+}
+
+// Play pleasant gentle chime feedback
+export function playChime(type: 'start' | 'reply' = 'reply') {
+  if (typeof window === 'undefined') return;
+  try {
+    unlockAudio();
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = audioContextInstance || new AudioCtx();
+    audioContextInstance = ctx;
+
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    const now = ctx.currentTime;
+    if (type === 'start') {
+      // Gentle two-tone rising chime for mic start
+      osc.frequency.setValueAtTime(440, now); // A4
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.12); // A5
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+      osc.start(now);
+      osc.stop(now + 0.18);
+    } else {
+      // Soft harp-like ping for AI response
+      osc.frequency.setValueAtTime(587.33, now); // D5
+      osc.frequency.exponentialRampToValueAtTime(880, now + 0.15); // A5
+      gain.gain.setValueAtTime(0.06, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+      osc.start(now);
+      osc.stop(now + 0.22);
+    }
+  } catch (e) {
+    // Non-critical audio feedback fallback
+  }
+}
+
+export function prewarmVoices() {
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    unlockAudio();
+    cachedVoices = window.speechSynthesis.getVoices();
+  }
+}
+
+export function cleanSpokenText(text: string): string {
+  return text
+    .replace(/[*_#`~[\]()]/g, '') // remove markdown symbols
+    .replace(/⚡|🌸|✨|🩸|👶|❤️|🍵|🔴|🖤|⚖️|💆/g, '') // remove emojis for natural TTS
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 export function speakText(text: string, lang: LanguageCode, onEnd?: () => void) {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
     if (onEnd) onEnd();
     return;
   }
 
-  // Cancel any ongoing utterance
+  // Wake up speech engine
+  unlockAudio();
   window.speechSynthesis.cancel();
+  window.speechSynthesis.resume();
 
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = LANGUAGE_SPEECH_CODES[lang] || 'en-IN';
-  utterance.rate = 0.95; // Gentle, clear conversational pace
-  utterance.pitch = 1.05; // Friendly warm tone
-
-  // Attempt to select an Indian or regional voice if available
-  const voices = window.speechSynthesis.getVoices();
-  const matchingVoice = voices.find(
-    (v) => v.lang === utterance.lang || v.lang.startsWith(lang) || v.name.toLowerCase().includes('india') || v.name.toLowerCase().includes('hindi')
-  );
-  if (matchingVoice) {
-    utterance.voice = matchingVoice;
+  const cleanText = cleanSpokenText(text);
+  if (!cleanText) {
+    if (onEnd) onEnd();
+    return;
   }
 
-  utterance.onend = () => {
-    if (onEnd) onEnd();
-  };
-  utterance.onerror = () => {
-    if (onEnd) onEnd();
+  // Split into sentences for smooth, un-clipped playback
+  const sentenceRegex = /[^।?!.]+[।?!.]+/g;
+  let chunks = cleanText.match(sentenceRegex);
+  if (!chunks || chunks.length === 0) {
+    chunks = [cleanText];
+  }
+
+  // Clear previous stored utterances
+  activeUtterances = [];
+
+  const targetLangCode = LANGUAGE_SPEECH_CODES[lang] || 'en-IN';
+  const voices = cachedVoices.length > 0 ? cachedVoices : window.speechSynthesis.getVoices();
+
+  // Find best matching voice
+  const matchingVoice = voices.find(
+    (v) =>
+      v.lang === targetLangCode ||
+      v.lang.toLowerCase().replace('_', '-') === targetLangCode.toLowerCase() ||
+      v.lang.startsWith(lang) ||
+      (lang === 'hi' && v.name.toLowerCase().includes('hindi')) ||
+      (lang === 'en' && (v.name.toLowerCase().includes('india') || v.lang.includes('en')))
+  );
+
+  let chunkIndex = 0;
+
+  const speakNextChunk = () => {
+    if (chunkIndex >= chunks!.length) {
+      activeUtterances = [];
+      if (onEnd) onEnd();
+      return;
+    }
+
+    const chunkText = chunks![chunkIndex].trim();
+    if (!chunkText) {
+      chunkIndex++;
+      speakNextChunk();
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(chunkText);
+    utterance.lang = targetLangCode;
+    utterance.rate = 1.0;
+    utterance.pitch = 1.05;
+
+    if (matchingVoice) {
+      utterance.voice = matchingVoice;
+    }
+
+    utterance.onend = () => {
+      chunkIndex++;
+      speakNextChunk();
+    };
+
+    utterance.onerror = (e) => {
+      console.warn('Speech chunk notice:', e);
+      chunkIndex++;
+      speakNextChunk();
+    };
+
+    // Retain global reference so browser garbage collection doesn't stop speech
+    activeUtterances.push(utterance);
+    (window as any).__activeUtterances = activeUtterances;
+
+    // Resume speech synthesis to handle Chrome background pausing
+    window.speechSynthesis.resume();
+    window.speechSynthesis.speak(utterance);
   };
 
-  window.speechSynthesis.speak(utterance);
+  // Launch playback
+  speakNextChunk();
 }
 
 export function stopSpeaking() {
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    activeUtterances = [];
+    (window as any).__activeUtterances = [];
     window.speechSynthesis.cancel();
   }
 }

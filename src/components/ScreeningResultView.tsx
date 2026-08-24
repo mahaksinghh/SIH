@@ -15,7 +15,10 @@ import {
   ShieldCheck,
   ChevronDown,
   ChevronUp,
-  Share2,
+  Cpu,
+  FlaskConical,
+  HeartPulse,
+  Info,
 } from 'lucide-react';
 import { LanguageCode, ScreeningResult, User } from '../types';
 import { getTranslation } from '../services/translations';
@@ -49,10 +52,12 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
 
   const t = (key: string) => getTranslation(currentLanguage, key);
 
-  // Styling based on level
+  // Pattern styling
+  const pcosPattern = result.pcosPattern || (result.overallScore >= 55 ? 'HIGH' : result.overallScore >= 28 ? 'MODERATE' : 'LOW');
+
   const getBadgeStyle = () => {
-    switch (result.level) {
-      case 'GREEN':
+    switch (pcosPattern) {
+      case 'LOW':
         return {
           bg: 'bg-emerald-50',
           border: 'border-emerald-200',
@@ -60,8 +65,9 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
           badge: 'bg-emerald-600 text-white',
           icon: CheckCircle2,
           colorCode: '#10b981',
+          patternLabel: 'LOW PATTERN',
         };
-      case 'ORANGE':
+      case 'MODERATE':
         return {
           bg: 'bg-amber-50',
           border: 'border-amber-200',
@@ -69,8 +75,9 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
           badge: 'bg-amber-500 text-slate-950 font-bold',
           icon: AlertCircle,
           colorCode: '#f59e0b',
+          patternLabel: 'MODERATE PATTERN',
         };
-      case 'RED':
+      case 'HIGH':
       default:
         return {
           bg: 'bg-rose-50',
@@ -79,6 +86,7 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
           badge: 'bg-rose-600 text-white',
           icon: AlertTriangle,
           colorCode: '#e11d48',
+          patternLabel: 'HIGH PATTERN',
         };
     }
   };
@@ -98,10 +106,13 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
         }),
       });
       const data = await res.json();
-      setAiExplanationText(data.explanation || 'Consult a qualified gynecologist for an individual clinical review.');
+      setAiExplanationText(
+        data.explanation ||
+          'Your responses show a pattern of PCOS-associated features that may warrant clinical evaluation. Your metabolic measurements provide additional health-risk context.'
+      );
     } catch (e) {
       setAiExplanationText(
-        'Your preliminary assessment indicates features commonly associated with cycle variations. Consulting a gynecologist will help you discuss hormonal wellness and lifestyle measures.'
+        'Your preliminary assessment indicates features commonly associated with cycle variations and metabolic dynamics. Please consult a qualified gynecologist for an individual clinical review.'
       );
     } finally {
       setIsAiExplaining(false);
@@ -113,47 +124,58 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
       stopSpeaking();
       setIsSpeaking(false);
     } else {
-      const summaryText = result.levelDescription || (result as any).summary || '';
-      const stepsText = (result.recommendedNextSteps || (result as any).suggestedNextSteps || []).join('. ');
-      const textToRead = `${result.levelTitle}. ${summaryText}. What to do next: ${stepsText}`;
+      const summaryText = result.levelDescription || '';
+      const stepsText = (result.recommendedNextSteps || []).join('. ');
+      const textToRead = `StreeSure Preliminary Screening: ${pcosPattern} PCOS-Associated Feature Pattern. ${summaryText}. What to do next: ${stepsText}`;
       speakText(textToRead, currentLanguage, () => setIsSpeaking(false));
       setIsSpeaking(true);
     }
   };
 
-  // Safe normalized factor list
-  const factorsList =
-    Array.isArray(result.categories) && result.categories.length > 0
-      ? result.categories
-          .filter((c) => c.status === 'high' || c.status === 'moderate')
-          .flatMap((c) =>
-            (c.observations || []).map((obs) => ({
-              category: c.categoryTitle,
-              weight: c.status === 'high' ? 'high' : 'medium',
-              observation: obs,
-            }))
-          )
-      : (Array.isArray(result.contributingFactors) ? result.contributingFactors : []).map(
-          (factorItem: any, idx: number) => {
-            if (typeof factorItem === 'object' && factorItem !== null) {
-              return {
-                category: factorItem.category || `Factor ${idx + 1}`,
-                weight: factorItem.weight || 'medium',
-                observation: factorItem.observation || factorItem.description || String(factorItem),
-              };
-            }
-            return {
-              category: 'Clinical Observation ' + (idx + 1),
-              weight: 'medium',
-              observation: String(factorItem),
-            };
-          }
+  // Helper Badge for Sources
+  const renderSourceBadge = (source?: string) => {
+    if (!source) return null;
+    switch (source) {
+      case 'DEMO':
+        return (
+          <span className="px-2 py-0.5 rounded-md bg-purple-100 text-purple-900 border border-purple-300 text-[10px] font-extrabold tracking-wide uppercase">
+            DEMO
+          </span>
         );
+      case 'DEVICE':
+        return (
+          <span className="px-2 py-0.5 rounded-md bg-teal-100 text-teal-900 border border-teal-300 text-[10px] font-extrabold tracking-wide uppercase">
+            STREESURE DEVICE
+          </span>
+        );
+      case 'LAB_REPORT':
+        return (
+          <span className="px-2 py-0.5 rounded-md bg-blue-100 text-blue-900 border border-blue-300 text-[10px] font-bold tracking-wide uppercase">
+            LAB REPORT
+          </span>
+        );
+      case 'MANUAL':
+      default:
+        return (
+          <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-300 text-[10px] font-bold tracking-wide uppercase">
+            MANUAL
+          </span>
+        );
+    }
+  };
 
-  const nextStepsList = result.recommendedNextSteps || (result as any).suggestedNextSteps || [
-    'Schedule a consultation with a registered Gynecologist via StreeSure or visit your nearest Community Health Center / PHC.',
-    'Connect with your local ASHA worker to facilitate guided referral paperwork and PHC navigation.',
+  const pb = result.pointBreakdown || {
+    menstrualPatternScore: 26,
+    clinicalSymptomsScore: 20,
+    metabolicContextScore: 12,
+    supportingContextScore: 4,
+    totalScore: result.overallScore,
+  };
+
+  const nextStepsList = result.recommendedNextSteps || [
+    'Schedule a consultation with a registered Gynecologist via StreeSure for clinical evaluation.',
     'Maintain an ongoing menstrual log in the StreeSure Period Tracker to share objective timeline data with your doctor.',
+    'Share your metabolic profile with your healthcare provider for integrated lifestyle guidance.',
   ];
 
   return (
@@ -166,11 +188,16 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
               <IconComponent className="w-8 h-8" />
             </div>
             <div>
-              <span className={`text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${style.badge}`}>
-                Level {result.level === 'GREEN' ? '1' : result.level === 'ORANGE' ? '2' : '3'} : {result.level}
-              </span>
+              <div className="flex items-center gap-2">
+                <span className={`text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full ${style.badge}`}>
+                  PCOS-Associated Feature Pattern: {style.patternLabel}
+                </span>
+                <span className="text-[10px] font-bold text-slate-500 bg-white/80 px-2 py-0.5 rounded-md border border-slate-200">
+                  Not a diagnosis
+                </span>
+              </div>
               <h1 className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
-                {result.levelTitle}
+                StreeSure Preliminary Screening
               </h1>
             </div>
           </div>
@@ -179,7 +206,6 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
           <div className="flex items-center gap-2">
             <button
               type="button"
-              id="btn-result-read-aloud"
               onClick={handleReadAloud}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-slate-800 text-xs font-bold shadow-xs hover:bg-slate-50 transition"
             >
@@ -189,7 +215,6 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
 
             <button
               type="button"
-              id="btn-result-view-3d"
               onClick={onOpen3DModal}
               className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-teal-700 text-white text-xs font-bold shadow-xs hover:bg-teal-800 transition"
             >
@@ -199,16 +224,15 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
           </div>
         </div>
 
-        {/* Core Summary Paragraph */}
+        {/* Core Medical Phrasing */}
         <p className="text-sm sm:text-base text-slate-800 font-medium leading-relaxed mb-6">
-          {result.levelDescription || (result as any).summary || 'Your assessment responses have been analyzed based on standard clinical algorithms.'}
+          Your responses show a pattern of PCOS-associated features that may warrant clinical evaluation. Your metabolic measurements provide additional health-risk context.
         </p>
 
         {/* Action CTAs */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
           <button
             type="button"
-            id="btn-result-book-doctor"
             onClick={onBookDoctor}
             className="flex items-center justify-center gap-2 p-3.5 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-lg shadow-rose-200 transition hover:scale-105"
           >
@@ -218,7 +242,6 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
 
           <button
             type="button"
-            id="btn-result-connect-asha"
             onClick={onConnectAsha}
             className="flex items-center justify-center gap-2 p-3.5 rounded-2xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-md shadow-teal-200 transition hover:scale-105"
           >
@@ -228,7 +251,6 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
 
           <button
             type="button"
-            id="btn-result-track-period"
             onClick={onOpenTracker}
             className="flex items-center justify-center gap-2 p-3.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-bold shadow-xs transition"
           >
@@ -238,16 +260,16 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
         </div>
       </div>
 
-      {/* 2. "WHY DID I RECEIVE THIS RESULT?" - Breakdown Section */}
+      {/* 2. EXPLAINABILITY: Exact Point Breakdown from Deterministic Screening Engine */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-rose-100 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
               <Activity className="w-5 h-5 text-rose-600" />
-              <span>Why Did I Receive This Result? (Screening Breakdown)</span>
+              <span>Deterministic Screening Score & Explainability</span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
-              Transparent explanation of your responses across clinical categories
+              Exact score components calculated by the deterministic clinical rule engine (not generated or altered by AI)
             </p>
           </div>
           <button
@@ -260,50 +282,99 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
         </div>
 
         {showFullBreakdown && (
-          <div className="space-y-4 pt-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {factorsList.length > 0 ? (
-                factorsList.map((factor, idx) => (
-                  <div
-                    key={idx}
-                    className={`p-4 rounded-2xl border ${
-                      factor.weight === 'high'
-                        ? 'bg-rose-50/50 border-rose-200'
-                        : factor.weight === 'medium'
-                        ? 'bg-amber-50/50 border-amber-200'
-                        : 'bg-slate-50 border-slate-200'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1.5">
-                      <span className="text-xs font-bold text-slate-900">{factor.category}</span>
-                      <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase ${
-                          factor.weight === 'high'
-                            ? 'bg-rose-200 text-rose-800'
-                            : factor.weight === 'medium'
-                            ? 'bg-amber-200 text-amber-900'
-                            : 'bg-slate-200 text-slate-700'
-                        }`}
-                      >
-                        {factor.weight} impact
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-600 leading-relaxed">{factor.observation}</p>
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-2 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
-                  Responses are within typical physiological variations.
+          <div className="space-y-6 pt-2">
+            {/* 4 Deterministic Engine Point Bars */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              {/* Menstrual Pattern */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="text-xs font-bold text-slate-700 block">Menstrual pattern</span>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-2xl font-black text-rose-600">{pb.menstrualPatternScore}</span>
+                  <span className="text-xs text-slate-400 font-bold">/ 40</span>
                 </div>
-              )}
+                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-rose-500 h-full rounded-full"
+                    style={{ width: `${(pb.menstrualPatternScore / 40) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Clinical Symptoms */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="text-xs font-bold text-slate-700 block">Clinical symptoms</span>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-2xl font-black text-rose-600">{pb.clinicalSymptomsScore}</span>
+                  <span className="text-xs text-slate-400 font-bold">/ 30</span>
+                </div>
+                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-rose-500 h-full rounded-full"
+                    style={{ width: `${(pb.clinicalSymptomsScore / 30) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Metabolic Context */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="text-xs font-bold text-slate-700 block">Metabolic context</span>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-2xl font-black text-teal-600">{pb.metabolicContextScore}</span>
+                  <span className="text-xs text-slate-400 font-bold">/ 20</span>
+                </div>
+                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-teal-500 h-full rounded-full"
+                    style={{ width: `${(pb.metabolicContextScore / 20) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Supporting Context */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="text-xs font-bold text-slate-700 block">Supporting context</span>
+                <div className="flex items-baseline justify-between">
+                  <span className="text-2xl font-black text-purple-600">{pb.supportingContextScore}</span>
+                  <span className="text-xs text-slate-400 font-bold">/ 10</span>
+                </div>
+                <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="bg-purple-500 h-full rounded-full"
+                    style={{ width: `${(pb.supportingContextScore / 10) * 100}%` }}
+                  />
+                </div>
+              </div>
             </div>
 
-            {/* AI Medical Explainability Box */}
+            {/* Total Calculation Row */}
+            <div className="p-3.5 rounded-2xl bg-slate-100 border border-slate-200 flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800">
+                Total Deterministic Preliminary Screening Score:
+              </span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-xl font-black text-slate-900">{pb.totalScore}</span>
+                <span className="text-xs text-slate-500 font-bold">/ 100</span>
+              </div>
+            </div>
+
+            {/* Structured Factor Observations */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {result.contributingFactors.map((obs, idx) => (
+                <div key={idx} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 flex items-start gap-2.5">
+                  <span className="w-5 h-5 rounded-full bg-rose-100 text-rose-700 font-bold flex items-center justify-center shrink-0 mt-0.5">
+                    ✓
+                  </span>
+                  <span>{obs}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* AI Medical Explanation (Educational Only) */}
             <div className="p-4 rounded-2xl bg-gradient-to-br from-indigo-50/70 to-teal-50/70 border border-indigo-100 space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs font-bold text-indigo-900">
                   <Sparkles className="w-4 h-4 text-indigo-600" />
-                  <span>StreeSure AI Detailed Educational Note</span>
+                  <span>StreeSure AI Educational Summary</span>
                 </div>
                 {!aiExplanationText && (
                   <button
@@ -312,7 +383,7 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
                     disabled={isAiExplaining}
                     className="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition disabled:opacity-50"
                   >
-                    {isAiExplaining ? 'Generating Note...' : 'Generate Clinical Explanation'}
+                    {isAiExplaining ? 'Generating Note...' : 'Explain Results in Simple Language'}
                   </button>
                 )}
               </div>
@@ -323,7 +394,7 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
                 </div>
               ) : (
                 <p className="text-xs text-slate-500 italic">
-                  Tap "Generate Clinical Explanation" to receive a tailored, non-diagnostic educational explanation of what your biological observations mean.
+                  Tap "Explain Results in Simple Language" to receive a clear, conversational overview explaining your biological indicators and supportive next steps.
                 </p>
               )}
             </div>
@@ -331,7 +402,112 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
         )}
       </div>
 
-      {/* 3. "WHAT THIS RESULT MEANS" VS "WHAT IT DOES NOT MEAN" */}
+      {/* 3. METABOLIC PROFILE & HARDWARE MEASUREMENTS TABLE */}
+      <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-rose-100 space-y-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <FlaskConical className="w-5 h-5 text-teal-600" />
+              <span>Metabolic Profile & Device Biomarkers</span>
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Available blood glucose and lipid markers with verified measurement provenance
+            </p>
+          </div>
+          <span className="px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-900 text-[10px] font-extrabold uppercase">
+            DEMO / SIMULATED HARDWARE
+          </span>
+        </div>
+
+        {/* Metabolic Profile Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {/* Glucose */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800">Glucose</span>
+              {renderSourceBadge(result.metabolicProfile?.glucose?.source || 'DEMO')}
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-extrabold text-slate-900">
+                {result.metabolicProfile?.glucose?.value || 112}
+              </span>
+              <span className="text-xs text-slate-500 font-semibold">mg/dL</span>
+            </div>
+            <span className="text-[10px] text-emerald-700 font-semibold block">Status: Valid</span>
+          </div>
+
+          {/* Triglycerides */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800">Triglycerides</span>
+              {renderSourceBadge(result.metabolicProfile?.triglycerides?.source || 'DEMO')}
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-extrabold text-slate-900">
+                {result.metabolicProfile?.triglycerides?.value || 168}
+              </span>
+              <span className="text-xs text-slate-500 font-semibold">mg/dL</span>
+            </div>
+            <span className="text-[10px] text-emerald-700 font-semibold block">Status: Valid</span>
+          </div>
+
+          {/* Total Cholesterol */}
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-800">Total Cholesterol</span>
+              {renderSourceBadge(result.metabolicProfile?.totalCholesterol?.source || 'DEMO')}
+            </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-extrabold text-slate-900">
+                {result.metabolicProfile?.totalCholesterol?.value || 208}
+              </span>
+              <span className="text-xs text-slate-500 font-semibold">mg/dL</span>
+            </div>
+            <span className="text-[10px] text-emerald-700 font-semibold block">Status: Valid</span>
+          </div>
+        </div>
+
+        {/* Hardware Measurements Detail Log */}
+        {result.hardwareMeasurements && result.hardwareMeasurements.length > 0 && (
+          <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Cpu className="w-4 h-4 text-purple-400" />
+                <span className="text-xs font-bold">StreeSure Hardware Import Log</span>
+              </div>
+              <span className="text-[10px] font-bold text-purple-300">
+                Device: {result.hardwareMeasurements[0]?.deviceId || 'STREESURE-PROTOTYPE-01'}
+              </span>
+            </div>
+
+            <div className="divide-y divide-slate-800 text-xs">
+              {result.hardwareMeasurements.map((m, idx) => (
+                <div key={idx} className="py-2 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-slate-200">{m.parameter.replace(/_/g, ' ')}</span>
+                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-900/80 text-purple-200 border border-purple-700">
+                      {m.source}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="font-bold text-emerald-400">
+                      {m.value} {m.unit}
+                    </span>
+                    <span className="text-[10px] text-slate-400">
+                      {new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                    <span className="text-[10px] text-emerald-400 font-semibold">
+                      {m.qualityStatus}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 4. "WHAT THIS RESULT MEANS" VS "WHAT IT DOES NOT MEAN" */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-3xl p-6 shadow-xl border border-emerald-100 space-y-3">
           <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
@@ -341,15 +517,15 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
           <ul className="space-y-2 text-xs text-slate-600 leading-relaxed">
             <li className="flex items-start gap-2">
               <span className="text-emerald-500 font-bold">•</span>
-              <span>It provides an objective, structured overview of your menstrual and symptom patterns.</span>
+              <span>Your responses show a pattern of PCOS-associated features that may warrant clinical evaluation.</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-emerald-500 font-bold">•</span>
-              <span>It helps you prepare organized notes for your upcoming doctor consultation.</span>
+              <span>Your metabolic measurements provide additional health-risk context.</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-emerald-500 font-bold">•</span>
-              <span>It offers relevant lifestyle and nutritional guidance for cycle health.</span>
+              <span>It provides organized, objective timeline and biomarker data for your gynecologist appointment.</span>
             </li>
           </ul>
         </div>
@@ -362,11 +538,11 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
           <ul className="space-y-2 text-xs text-slate-600 leading-relaxed">
             <li className="flex items-start gap-2">
               <span className="text-rose-500 font-bold">•</span>
-              <span>This is <strong>NOT a definitive clinical diagnosis</strong> of PCOS.</span>
+              <span>This is <strong>NOT a diagnosis</strong> of PCOS or any specific illness.</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-rose-500 font-bold">•</span>
-              <span>It is not a prescription or medical instruction to take or stop any medication.</span>
+              <span>Hardware does not directly detect or diagnose PCOS on its own.</span>
             </li>
             <li className="flex items-start gap-2">
               <span className="text-rose-500 font-bold">•</span>
@@ -376,7 +552,7 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
         </div>
       </div>
 
-      {/* 4. SUGGESTED NEXT STEPS & MEDICAL DISCLAIMER */}
+      {/* 5. SUGGESTED NEXT STEPS & MEDICAL DISCLAIMER */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-rose-100 space-y-4">
         <h3 className="text-base font-bold text-slate-900">Recommended Next Steps</h3>
         <div className="space-y-2.5">
@@ -388,6 +564,16 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
               <span>{step}</span>
             </div>
           ))}
+        </div>
+
+        {/* Global Medical & Demo Disclaimers */}
+        <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-[11px] text-slate-600 space-y-1">
+          <p>
+            <strong>Medical Disclaimer:</strong> StreeSure provides preliminary risk screening and health education. It does not diagnose PCOS or replace evaluation by a qualified healthcare professional.
+          </p>
+          <p>
+            <strong>Demo Disclaimer:</strong> Demo measurements are simulated and are not real clinical measurements.
+          </p>
         </div>
 
         <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">

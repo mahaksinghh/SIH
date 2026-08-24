@@ -56,6 +56,94 @@ export interface HealthProfile {
   updatedAt: string;
 }
 
+export interface BasicProfile {
+  age: number;
+  heightCm: number;
+  weightKg: number;
+  bmi: number; // Automatically calculated = weightKg / (heightM * heightM)
+  waistCircumferenceCm?: number;
+  familyHistoryPcos: boolean;
+  familyHistoryDiabetes: boolean;
+  knownDiabetes: boolean;
+  knownThyroid: boolean;
+  currentHormonalMeds: boolean;
+}
+
+export interface MenstrualProfile {
+  averageCycleLengthDays: number;
+  shortestCycleDays?: number;
+  longestCycleDays?: number;
+  periodsInLast12Months?: number;
+  cycleRegularity: 'regular_21_35' | 'infrequent_over_35' | 'frequent_under_21' | 'absent_3_months_plus';
+  frequentlyOver35Days: boolean;
+  frequentlyUnder21Days: boolean;
+  anyCycleOver90Days: boolean;
+  averageBleedingDays: number;
+  heavyBleeding: boolean;
+  recentChangeInPattern: boolean;
+}
+
+export interface SymptomProfile {
+  // CORE FEATURES
+  excessFacialBodyHair: 'none' | 'mild' | 'moderate_to_severe';
+  persistentSevereAcne: 'none' | 'mild' | 'moderate_to_severe';
+  scalpHairThinning: 'none' | 'mild' | 'moderate_to_severe';
+  menstrualIrregularityPresent: boolean;
+
+  // SUPPORTING FEATURES
+  acanthosisSkinChanges: boolean;
+  unexplainedWeightChange: 'none' | 'moderate' | 'significant';
+  chronicFatigue: boolean;
+  sleepIssues: boolean;
+  moodChanges: boolean;
+  pelvicDiscomfort: boolean;
+}
+
+export interface MetabolicMeasurementEntry {
+  value?: number;
+  unit: 'mg/dL';
+  source: 'MANUAL' | 'LAB_REPORT' | 'DEVICE' | 'DEMO';
+  fastingStatus?: 'FASTING' | 'NON_FASTING' | 'UNKNOWN';
+  timestamp?: string;
+  qualityStatus?: 'VALID' | 'INVALID' | 'QUALITY_WARNING';
+  deviceId?: string;
+  isMeasured: boolean;
+}
+
+export interface MetabolicProfile {
+  glucose?: MetabolicMeasurementEntry;
+  triglycerides?: MetabolicMeasurementEntry;
+  totalCholesterol?: MetabolicMeasurementEntry;
+  hdl?: MetabolicMeasurementEntry;
+  ldl?: MetabolicMeasurementEntry;
+  systolicBp?: number;
+  diastolicBp?: number;
+  waistCircumferenceCm?: number;
+}
+
+export interface HardwareMeasurementItem {
+  measurementId: string;
+  sessionId: string;
+  parameter: 'GLUCOSE' | 'TRIGLYCERIDES' | 'TOTAL_CHOLESTEROL' | 'HDL' | 'LDL';
+  value: number;
+  unit: 'mg/dL';
+  timestamp: string;
+  source: 'DEVICE' | 'DEMO';
+  deviceId?: string;
+  firmwareVersion?: string;
+  qualityStatus: 'VALID' | 'INVALID' | 'QUALITY_WARNING';
+  fastingStatus: 'FASTING' | 'NON_FASTING' | 'UNKNOWN';
+  errorMessage?: string;
+}
+
+export interface StreeSureUnifiedScreeningSession {
+  basicProfile: BasicProfile;
+  menstrualProfile: MenstrualProfile;
+  symptomProfile: SymptomProfile;
+  metabolicProfile: MetabolicProfile;
+  hardwareMeasurements: HardwareMeasurementItem[];
+}
+
 export interface ScreeningAnswers {
   // Category A: Menstrual Patterns
   cycleRegularity: 'regular_21_35' | 'infrequent_over_35' | 'frequent_under_21' | 'absent_3_months_plus';
@@ -94,6 +182,13 @@ export interface ScreeningAnswers {
   // Category F: Family History
   familyPcosHistory: boolean;
   familyCardiovascularMetabolic: boolean;
+
+  // Extended Unified Profiles (Optional on answers for smooth inter-op)
+  basicProfile?: BasicProfile;
+  menstrualProfile?: MenstrualProfile;
+  symptomProfile?: SymptomProfile;
+  metabolicProfile?: MetabolicProfile;
+  hardwareMeasurements?: HardwareMeasurementItem[];
 }
 
 export interface CategoryBreakdown {
@@ -105,6 +200,14 @@ export interface CategoryBreakdown {
   observations: string[];
 }
 
+export interface ScreeningExplainabilityBreakdown {
+  menstrualPatternScore: number; // e.g. out of 40
+  clinicalSymptomsScore: number; // e.g. out of 30
+  metabolicContextScore: number; // e.g. out of 20
+  supportingContextScore: number; // e.g. out of 10
+  totalScore: number; // 0 - 100
+}
+
 export interface ScreeningResult {
   id: string;
   userId: string;
@@ -112,7 +215,9 @@ export interface ScreeningResult {
   level: ScreeningLevel;
   levelTitle: string;
   levelDescription: string;
+  pcosPattern: 'LOW' | 'MODERATE' | 'HIGH';
   overallScore: number; // 0 - 100
+  pointBreakdown?: ScreeningExplainabilityBreakdown;
   categories: CategoryBreakdown[];
   contributingFactors: string[];
   whatItMeans: string[];
@@ -120,6 +225,16 @@ export interface ScreeningResult {
   recommendedNextSteps: string[];
   disclaimer: string;
   answers: ScreeningAnswers;
+  
+  // Unified Session Data & Hardware Integration
+  basicProfile?: BasicProfile;
+  menstrualProfile?: MenstrualProfile;
+  symptomProfile?: SymptomProfile;
+  metabolicProfile?: MetabolicProfile;
+  hardwareMeasurements?: HardwareMeasurementItem[];
+  completenessPercentage?: number;
+  isDataComplete?: boolean;
+  missingCriticalInfo?: string[];
 }
 
 export interface Doctor {
