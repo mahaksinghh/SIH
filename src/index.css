@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-[#0D0914] text-slate-100 antialiased selection:bg-rose-500 selection:text-white;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+}
+
+/* Beautiful Feminine Ambient & Blossom Mesh Backgrounds */
+.blossom-mesh-bg {
+  background-color: #0d0914;
+  background-image: 
+    radial-gradient(circle at 15% 20%, rgba(244, 63, 94, 0.14) 0%, transparent 40%),
+    radial-gradient(circle at 85% 25%, rgba(217, 70, 239, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 50% 75%, rgba(251, 146, 60, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 85%, rgba(236, 72, 153, 0.1) 0%, transparent 40%);
+  background-attachment: fixed;
+}
+
+.blossom-dot-pattern {
+  background-color: #0f0a17;
+  background-image: radial-gradient(circle at 2px 2px, rgba(244, 63, 94, 0.15) 1px, transparent 0);
+  background-size: 28px 28px;
+}
+
+.blossom-dot-dense {
+  background-color: #130c1e;
+  background-image: radial-gradient(circle at 2px 2px, rgba(236, 72, 153, 0.12) 1px, transparent 0);
+  background-size: 20px 20px;
+}
+
+/* Custom Feminine Rose Scrollbar */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+::-webkit-scrollbar-track {
+  background: #0d0914;
+}
+::-webkit-scrollbar-thumb {
+  background: #3f1d38;
+  border-radius: 9999px;
+  border: 1px solid rgba(244, 63, 94, 0.2);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #f43f5e;
+}
+
+/* Glassmorphic Blossom Card Effects */
+.glass-blossom-card {
+  background: rgba(22, 13, 31, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(244, 63, 94, 0.18);
+  border-radius: 1rem;
+  box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.03);
+}
+
+.glass-blossom-card:hover {
+  border-color: rgba(244, 63, 94, 0.35);
+  box-shadow: 0 16px 40px -8px rgba(244, 63, 94, 0.12), 0 0 0 1px rgba(244, 63, 94, 0.2);
+}
+
+.glass-blossom-glow {
+  background: rgba(24, 14, 34, 0.88);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(244, 63, 94, 0.35);
+  border-radius: 1.25rem;
+  box-shadow: 0 0 35px -5px rgba(244, 63, 94, 0.2), 0 16px 40px -10px rgba(0, 0, 0, 0.5);
+}
+
+.glass-berry-card {
+  background: rgba(26, 12, 36, 0.8);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(217, 70, 239, 0.22);
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px -5px rgba(217, 70, 239, 0.1);
+}
+
+/* Luminous Glowing Buttons */
+.btn-rose-primary {
+  background: linear-gradient(135deg, #f43f5e 0%, #ec4899 50%, #e11d48 100%);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 20px -2px rgba(244, 63, 94, 0.45);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-rose-primary:hover {
+  background: linear-gradient(135deg, #fb7185 0%, #f43f5e 50%, #e11d48 100%);
+  box-shadow: 0 6px 26px 0 rgba(244, 63, 94, 0.6);
+  transform: translateY(-1px);
+}
+
+.btn-berry-primary {
+  background: linear-gradient(135deg, #c026d3 0%, #a855f7 50%, #ec4899 100%);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 20px -2px rgba(192, 38, 211, 0.4);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-berry-primary:hover {
+  box-shadow: 0 6px 26px 0 rgba(192, 38, 211, 0.55);
+  transform: translateY(-1px);
+}
+
+.btn-soft-blush {
+  background: rgba(244, 63, 94, 0.12);
+  color: #fda4af;
+  border: 1px solid rgba(244, 63, 94, 0.28);
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.btn-soft-blush:hover {
+  background: rgba(244, 63, 94, 0.22);
+  color: #ffffff;
+  border-color: rgba(244, 63, 94, 0.45);
+}
+
+/* Animations */
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-6px) rotate(0.5deg);
+  }
+}
+
+.animate-float-gentle {
+  animation: float-gentle 5s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+.animate-pulse-ring {
+  animation: pulse-ring 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes shimmer-slow {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer-badge {
+  background: linear-gradient(90deg, rgba(244,63,94,0.1) 0%, rgba(244,63,94,0.3) 50%, rgba(244,63,94,0.1) 100%);
+  background-size: 200% 100%;
+  animation: shimmer-slow 4s infinite linear;
+}
