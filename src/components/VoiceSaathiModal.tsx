@@ -358,6 +358,7 @@ export const VoiceSaathiModal: React.FC<VoiceSaathiModalProps> = ({
     setIsLoadingAi(true);
 
     try {
+      if (import.meta.env.VITE_API_URL === '') throw new Error('Browser demo mode');
       const res = await fetch('/api/gemini/voice-saathi', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
