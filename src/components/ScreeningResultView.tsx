@@ -97,6 +97,7 @@ export const ScreeningResultView: React.FC<ScreeningResultViewProps> = ({
   const handleFetchAiExplanation = async () => {
     setIsAiExplaining(true);
     try {
+      if (import.meta.env.VITE_API_URL === '') throw new Error('Browser demo mode');
       const res = await fetch('/api/gemini/explain-screening', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
